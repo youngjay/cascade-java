@@ -10,6 +10,13 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>com.dianping.app</groupId>
+        <version>1.3.0</version>
+    </parent>
+
     <properties>
         <spring.version>3.2.3.RELEASE</spring.version>
     </properties>
