@@ -176,7 +176,7 @@ public class CascadeAction extends AjaxBaseWithStatus {
 每个方法可以获取上下文的参数包括
 
 1 params 字段传入的
-2 它的parent（如果有的话）
+2 它的parent的返回值（如果有的话）
 3 它的parent的所有参数
 
 这些参数都会被组织成map的形式，可以通过@Param("key")去获取
