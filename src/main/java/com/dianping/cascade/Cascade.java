@@ -30,7 +30,7 @@ public class Cascade {
 
         for (Field field : fields) {
             if (field.getType() == null) {
-                results.putAll(buildFields(field.getParams(), field.getChildren(), contextParams));
+                buildFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
             } else {
                 results.put(field.getComputedAs(), buildField(field, contextParams));
             }
@@ -43,7 +43,7 @@ public class Cascade {
         Invokable invokable = invokableMap.get(field.getType());
 
         if (invokable == null) {
-            throw new RuntimeException(String.format("Type [%s] not registered", field.getType()));
+            throw new RuntimeException(String.format("[%s] not registered", field.getType()));
         }
 
         final ContextParams contextParams = new ContextParams(field.getParams(), parentContextParams);
