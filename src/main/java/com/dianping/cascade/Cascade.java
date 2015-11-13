@@ -17,7 +17,7 @@ public class Cascade {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
 
     public Map process(Collection<Field> fields, Object input) {
-        return buildFields(Maps.newHashMap(), fields, new ContextParams(toMap(input), null));
+        return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(input), null));
     }
 
     public Map process(Field field, Object input) {
@@ -25,20 +25,20 @@ public class Cascade {
     }
 
     @SuppressWarnings("unchecked")
-    private Map buildFields(Map results, Collection<Field> fields, ContextParams parentContextParams) {
+    private Map ProcessFields(Map results, Collection<Field> fields, ContextParams parentContextParams) {
         ContextParams contextParams = new ContextParams(results, parentContextParams);
 
         for (Field field : fields) {
             if (field.getType() == null) {
-                buildFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
+                ProcessFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
             } else {
-                results.put(field.getComputedAs(), buildField(field, contextParams));
+                results.put(field.getComputedAs(), processField(field, contextParams));
             }
         }
         return results;
     }
 
-    private Object buildField(final Field field, ContextParams parentContextParams) {
+    private Object processField(final Field field, ContextParams parentContextParams) {
 
         Invokable invokable = invokableMap.get(field.getType());
 
@@ -58,11 +58,11 @@ public class Cascade {
             return Collections2.transform((Collection) result, new Function() {
                 @Override
                 public Object apply(Object input) {
-                    return buildFields(toMap(input), field.getChildren(), contextParams);
+                    return ProcessFields(toMap(input), field.getChildren(), contextParams);
                 }
             });
         } else {
-            return buildFields(toMap(result), field.getChildren(), contextParams);
+            return ProcessFields(toMap(result), field.getChildren(), contextParams);
         }
 
     }
