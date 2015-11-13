@@ -70,7 +70,7 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 
 - 注册cascade
 
-如果与spring继承的计划,只要简单的配置2个bean即可
+如果与spring继承的话,只要简单的配置2个bean即可
 
 ```
 <bean class="com.dianping.cascade.spring.CascadeFactory" id="cascadeFactory" />
