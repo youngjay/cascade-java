@@ -15,8 +15,8 @@ import java.util.Map;
  */
 public class Cascade {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
-
     private final String CASCADE_ERROR = "[Cascade Error] ";
+
 
     public Map process(Collection<Field> fields, Object input) {
         return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(input), null));
@@ -34,7 +34,13 @@ public class Cascade {
             if (field.getType() == null) {
                 ProcessFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
             } else {
-                results.put(field.getComputedAs(), processField(field, contextParams));
+                Object result;
+                try {
+                    result = processField(field, contextParams);
+                } catch (Exception ex) {
+                    result = CASCADE_ERROR + ex.getMessage();
+                }
+                results.put(field.getComputedAs(), result);
             }
         }
         return results;
@@ -50,13 +56,7 @@ public class Cascade {
 
         final ContextParams contextParams = new ContextParams(field.getParams(), parentContextParams);
 
-        Object result;
-
-        try {
-            result = invokable.invoke(field.getCategory(), contextParams);
-        } catch (Exception ex) {
-            return CASCADE_ERROR + ex.getMessage();
-        }
+        Object result = invokable.invoke(field.getCategory(), contextParams);
 
         if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
             return result;
