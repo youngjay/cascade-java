@@ -33,6 +33,7 @@ public class CascadeTest {
         testCooperation();
         testParamDTO();
         testNoType();
+        testError();
     }
 
     private static Field getUserField() {
@@ -58,6 +59,13 @@ public class CascadeTest {
         Object o = c.process(Lists.newArrayList(field), mockContext);
 
         System.out.println(JSON.toJSON(o));
+    }
+
+    private static void testError() {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("error");
+        print(field);
     }
 
     private static void testUser() {

@@ -1,5 +1,6 @@
 package com.dianping.cascade.test.cascade;
 
+import com.dianping.cascade.BusinessException;
 import com.dianping.cascade.annotation.Param;
 import com.dianping.cascade.test.model.Context;
 import com.dianping.cascade.test.model.UserDTO;
@@ -13,5 +14,9 @@ import java.util.List;
 public class User {
     public List<UserDTO> query(@Param("name") String name, @Param("context") Context context) {
         return Lists.newArrayList(new UserDTO(1, name), new UserDTO(2, context.getName()));
+    }
+
+    public Object error() {
+        throw new BusinessException("error occurs");
     }
 }
