@@ -1,5 +1,4 @@
 # cascade
-拆分合并前后端请求数据的库
 
 [cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
 
