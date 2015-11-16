@@ -47,7 +47,7 @@ public class ParamValueResolver implements ParameterResolver {
             if (isAllowNull()) {
                 return null;
             } else {
-                throw new IllegalArgumentException(String.format("not allow null for [%s]", paramKey));
+                throw new IllegalArgumentException(getLocation() + "not allow null");
             }
         }
 
@@ -58,8 +58,12 @@ public class ParamValueResolver implements ParameterResolver {
         try {
             return m.convertValue(o, type);
         } catch (Exception ex) {
-            throw new RuntimeException(String.format("actual param [%s] can not convert to required param [%s]", o.getClass().getSimpleName(), type.getSimpleName()));
+            throw new RuntimeException(getLocation() + String.format("param type not match: expect [%s], actual [%s]", type.getSimpleName(), o.getClass().getSimpleName()));
         }
 
+    }
+
+    private String getLocation() {
+        return String.format("@Param(\"%s\") ", paramKey);
     }
 }

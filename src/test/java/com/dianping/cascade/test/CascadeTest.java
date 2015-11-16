@@ -135,4 +135,28 @@ public class CascadeTest {
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUserName.name"), "user:Someone");
     }
+
+    @Test
+    public void testParamNotAllowNull() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("load");
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") not allow null");
+
+    }
+
+    @Test
+    public void testParamCannotConvert() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("load");
+        field.setParams(new HashMap(){{
+            put("userId", Lists.newArrayList());
+        }});
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
+    }
 }
