@@ -15,8 +15,7 @@ import java.util.Map;
  */
 public class Cascade {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
-    private final String CASCADE_ERROR = "[Cascade Error] ";
-
+    private static final String CASCADE_ERROR = "[Cascade Error] ";
 
     public Map process(Collection<Field> fields, Object input) {
         return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(input), null));
@@ -76,6 +75,10 @@ public class Cascade {
     }
 
     private Map toMap(Object bean) {
+        if (bean == null) {
+            return null;
+        }
+
         if (bean instanceof Map) {
             return (Map) bean;
         }

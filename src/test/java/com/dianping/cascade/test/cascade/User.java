@@ -12,11 +12,24 @@ import java.util.List;
  * Created by yangjie on 9/22/15.
  */
 public class User {
-    public List<UserDTO> query(@Param("name") String name, @Param("context") Context context) {
-        return Lists.newArrayList(new UserDTO(1, name), new UserDTO(2, context.getName()));
+    public List<UserDTO> query() {
+        return Lists.newArrayList(new UserDTO(1, "Jay"), new UserDTO(2, "Tom"));
     }
 
-    public Object error() {
-        throw new BusinessException("error occurs");
+    public UserDTO load(@Param("userId") int id) {
+        return new UserDTO(id, "Someone");
+    }
+
+    public int context(@Param("context") int context) {
+        return context;
+    }
+
+    public Object businessException() {
+        throw new BusinessException("error");
+    }
+
+
+    public Object runtimeException() {
+        throw new RuntimeException("error");
     }
 }

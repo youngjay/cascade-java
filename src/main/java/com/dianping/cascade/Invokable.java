@@ -108,7 +108,7 @@ public class Invokable {
                     }
                 }
 
-                throw new RuntimeException(getLocation(method.getName()) + "invoke error: " + msg);
+                throw new RuntimeException(getLocation(method.getName()) + msg);
             }
         }
     }

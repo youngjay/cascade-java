@@ -1,6 +1,9 @@
 # cascade
 拆分合并前后端请求数据的库
 
+[cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
+
+
 ## 解决的问题
 一个页面可能由多个后台模块组成，前端因为性能的关系，会要求服务端把所有的数据拼在一个请求里面返回。
 
@@ -64,7 +67,7 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
 </dependency>
 ```
 

@@ -4,9 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.Field;
 import com.dianping.cascade.test.cascade.Cooperation;
+import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
 import com.google.common.collect.Lists;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,91 +21,118 @@ import java.util.Map;
  * Created by yangjie on 9/23/15.
  */
 public class CascadeTest {
+    private Cascade c = new Cascade();
 
-    // 故意用map，让resolver做类型转换
-    private static Map mockContext = new HashMap(){{
-        put("context", new HashMap(){{
-            put("id", 101);
-            put("name", "Tom");
-        }});
-    }};
-
-    private static Cascade c = new Cascade();
-
-    public static void main(String[] args)  {
+    @BeforeClass
+    public void init() {
         c.register(Cooperation.class.getSimpleName(), new Cooperation());
         c.register(User.class.getSimpleName(), new User());
-
-        testUser();
-        testCooperation();
-        testParamDTO();
-        testNoType();
-        testError();
+        c.register(Shop.class.getSimpleName(), new Shop());
     }
 
-    private static Field getUserField() {
+    @Test
+    public void testNoParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Field field = new Field();
         field.setType("User");
-        field.setParams(new HashMap() {
-            {
-                put("name", "jay");
-            }
-        });
-        return field;
+        Map ret = c.process(field, null);
+        Assert.assertEquals(((Collection) PropertyUtils.getProperty(ret, "user")).size(), 2);
     }
 
-    private static Field getCooperationField() {
-        Field field = new Field();
-        field.setType("Cooperation");
-
-        return field;
-    }
-
-    private static void print(Field field) {
-
-        Object o = c.process(Lists.newArrayList(field), mockContext);
-
-        System.out.println(JSON.toJSON(o));
-    }
-
-    private static void testError() {
+    @Test
+    public void testParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Field field = new Field();
         field.setType("User");
-        field.setCategory("error");
-        print(field);
-    }
-
-    private static void testUser() {
-        Field userField = getUserField();
-        print(userField);
-    }
-
-    private static void testCooperation() {
-        Field userField = getUserField();
-        userField.setChildren(Lists.newArrayList(getCooperationField()));
-        print(userField);
-    }
-
-    private static void testParamDTO() {
-        Field cooperationField = getCooperationField();
-        cooperationField.setCategory("queryByShop");
-        cooperationField.setParams(new HashMap() {{
-            put("shop", new HashMap() {{
-                put("id", 10001);
-            }});
-        }});
-
-        print(cooperationField);
-    }
-
-    private static void testNoType() {
-        Field field = new Field();
+        field.setCategory("load");
         field.setParams(new HashMap() {{
-            put("id", 10002);
+            put("userId", 1);
         }});
 
-        field.setChildren(Lists.newArrayList(getCooperationField()));
+        Map ret = c.process(field, null);
 
-        print(field);
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), 1);
+    }
+
+    @Test
+    public void testInitParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("context");
+        final int context = 1;
+        Map ret = c.process(field, new HashMap(){{
+            put("context", context);
+        }});
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_context"), context);
+    }
+
+    @Test
+    public void testBusinessException() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("businessException");
+
+
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_businessException"), "[Cascade Error] error");
+    }
+
+    @Test
+    public void testRuntimeException() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("runtimeException");
+
+
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_runtimeException"), "[Cascade Error] [User.runtimeException] error");
+    }
+
+    @Test
+    public void childCanReceiveParentParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        final int userId = 2;
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("load");
+        field.setParams(new HashMap() {{
+            put("userId", userId);
+        }});
+
+        Field shopField = new Field();
+        shopField.setType("Shop");
+        shopField.setCategory("byUser");
+
+        field.setChildren(Lists.newArrayList(shopField));
+
+
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUser.ownerId"), userId);
+    }
+
+    @Test
+    public void childCanReceiveParentResults() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        final int userId = 2;
+
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("load");
+        field.setParams(new HashMap() {{
+            put("userId", userId);
+        }});
+
+        Field shopField = new Field();
+        shopField.setType("Shop");
+        shopField.setCategory("byUserName");
+
+        field.setChildren(Lists.newArrayList(shopField));
+
+
+        Map ret = c.process(field, null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUserName.name"), "user:Someone");
     }
 }
