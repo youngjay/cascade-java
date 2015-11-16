@@ -17,12 +17,20 @@ public class Cascade {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
-    public Map process(Collection<Field> fields, Object input) {
-        return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(input), null));
+    public Map process(Collection<Field> fields) {
+        return process(fields, null);
     }
 
-    public Map process(Field field, Object input) {
-        return process(Lists.newArrayList(field), input);
+    public Map process(Field field) {
+        return process(field, null);
+    }
+
+    public Map process(Collection<Field> fields, Object contextParams) {
+        return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(contextParams), null));
+    }
+
+    public Map process(Field field, Object contextParams) {
+        return process(Lists.newArrayList(field), contextParams);
     }
 
     @SuppressWarnings("unchecked")
@@ -42,6 +50,7 @@ public class Cascade {
                 results.put(field.getComputedAs(), result);
             }
         }
+
         return results;
     }
 
