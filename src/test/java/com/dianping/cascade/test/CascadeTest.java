@@ -1,6 +1,5 @@
 package com.dianping.cascade.test;
 
-import com.alibaba.fastjson.JSON;
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.Field;
 import com.dianping.cascade.test.cascade.Cooperation;
