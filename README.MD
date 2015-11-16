@@ -1,7 +1,5 @@
 # cascade
 
-[cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
-
 
 ## 解决的问题
 一个页面可能由多个后台模块组成，前端因为性能的关系，会要求服务端把所有的数据拼在一个请求里面返回。
@@ -182,3 +180,7 @@ public class CascadeAction extends AjaxBaseWithStatus {
 3 它的parent的所有参数
 
 这些参数都会被组织成map的形式，可以通过@Param("key")去获取
+
+## 客户端
+
+[cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
