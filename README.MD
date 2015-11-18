@@ -184,3 +184,7 @@ public class CascadeAction extends AjaxBaseWithStatus {
 ## 客户端
 
 [cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
+
+## demo
+[cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
+[cascade-spring-demo](http://code.dianpingoa.com/cascade/cascade-spring-demo/tree/master)
