@@ -64,7 +64,7 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.0</version>
 </dependency>
 ```
 
