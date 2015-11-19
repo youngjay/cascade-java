@@ -13,6 +13,20 @@
 - 页面的变化特别快，从而导致这些DTO也是极不稳定的。
 - 拼装的逻辑都是类似的
 
+## 客户端
+
+- [cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
+
+## demo
+- [cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
+
+cascade-java + servlet + ajax
+
+- [cascade-spring-demo](http://code.dianpingoa.com/cascade/cascade-spring-demo/tree/master)
+
+cascade-java + spring + pigeon + cascade-client
+
+
 ## cascade处理方式
 
 - 注册typehandler
@@ -94,7 +108,7 @@ public class Action implements CascadeAware {
 
 即可
 
-如果没有用spring的话,需要自己创建cascade实例,并且手工调用register方法了. 具体实现可以参考 `com.dianping.cascade.spring.CascadeFactory`
+如果没有用spring的话,需要自己创建cascade实例,并且手工调用register方法了. 具体实现可以参考 [cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
 
 
 - 调用cascade
@@ -175,16 +189,16 @@ public class CascadeAction extends AjaxBaseWithStatus {
 
 每个方法可以获取上下文的参数包括
 
-1 params 字段传入的
-2 它的parent的返回值（如果有的话）
-3 它的parent的所有参数
+1. params 字段传入的
+2. 它的parent的返回值（如果有的话）
+3. 它的parent的所有参数
 
 这些参数都会被组织成map的形式，可以通过@Param("key")去获取
 
-## 客户端
+- 异常处理
 
-[cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
+cascade默认会对抛出的异常标注上异常出现的位置类似于 ```[User.byId] loginId -1233 not exists```
 
-## demo
-[cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
-[cascade-spring-demo](http://code.dianpingoa.com/cascade/cascade-spring-demo/tree/master)
+如果不想显示位置的话，请抛出 ``` com.dianping.cascade.BusinessException ```
+
+
