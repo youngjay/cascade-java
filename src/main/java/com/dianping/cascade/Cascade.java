@@ -26,7 +26,7 @@ public class Cascade {
     }
 
     public Map process(Collection<Field> fields, Object contextParams) {
-        return ProcessFields(Maps.newHashMap(), fields, new ContextParams(toMap(contextParams), null));
+        return processFields(Maps.newHashMap(), fields, new ContextParams(toMap(contextParams), null));
     }
 
     public Map process(Field field, Object contextParams) {
@@ -34,12 +34,12 @@ public class Cascade {
     }
 
     @SuppressWarnings("unchecked")
-    private Map ProcessFields(Map results, Collection<Field> fields, ContextParams parentContextParams) {
+    private Map processFields(Map results, Collection<Field> fields, ContextParams parentContextParams) {
         ContextParams contextParams = new ContextParams(results, parentContextParams);
 
         for (Field field : fields) {
             if (field.getType() == null) {
-                ProcessFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
+                processFields(results, field.getChildren(), new ContextParams(field.getParams(), contextParams));
             } else {
                 Object result;
                 try {
@@ -74,11 +74,11 @@ public class Cascade {
             return Collections2.transform((Collection) result, new Function() {
                 @Override
                 public Object apply(Object input) {
-                    return ProcessFields(toMap(input), field.getChildren(), contextParams);
+                    return processFields(toMap(input), field.getChildren(), contextParams);
                 }
             });
         } else {
-            return ProcessFields(toMap(result), field.getChildren(), contextParams);
+            return processFields(toMap(result), field.getChildren(), contextParams);
         }
 
     }
