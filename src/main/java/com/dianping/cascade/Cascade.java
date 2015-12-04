@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by yangjie on 9/22/15.
  */
 public class Cascade {
-    private Map<String, Invokable> invokableMap = Maps.newHashMap();
+    private Registry registry = new Registry();
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
     public Map process(Collection<Field> fields) {
@@ -56,15 +56,12 @@ public class Cascade {
 
     private Object processField(final Field field, ContextParams parentContextParams) {
 
-        Invokable invokable = invokableMap.get(field.getType());
 
-        if (invokable == null) {
-            throw new RuntimeException(String.format("[%s] not registered", field.getType()));
-        }
+        Invokable invokable = registry.get(field.getType(), field.getCategory());
 
         final ContextParams contextParams = new ContextParams(field.getParams(), parentContextParams);
 
-        Object result = invokable.invoke(field.getCategory(), contextParams);
+        Object result = invokable.invoke(contextParams);
 
         if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
             return result;
@@ -102,16 +99,11 @@ public class Cascade {
         }
     }
 
-    public void register(Collection beans) {
-        for (Object obj : beans) {
-            register(obj.getClass().getSimpleName(), obj);
-        }
+    public void register(Object bean) {
+        this.register(bean.getClass().getSimpleName(), bean);
     }
 
     public void register(String type, Object bean) {
-        if (invokableMap.containsKey(type)) {
-            throw new RuntimeException(String.format("Type [%s] has already registered", type));
-        }
-        invokableMap.put(type, new Invokable(bean));
+        this.registry.register(type, bean);
     }
 }
