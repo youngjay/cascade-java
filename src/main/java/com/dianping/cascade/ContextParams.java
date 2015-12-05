@@ -31,4 +31,14 @@ public class ContextParams {
 
         return result;
     }
+
+
+    public ContextParams extend(Map params) {
+        return new ContextParams(params, this);
+    }
+
+    public static ContextParams create(Map params) {
+        return new ContextParams(params, null);
+    }
+
 }

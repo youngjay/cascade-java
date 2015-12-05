@@ -12,7 +12,7 @@ import java.util.List;
  * Created by yangjie on 10/24/15.
  */
 @Data
-public class ParamValueResolver implements ParameterResolver {
+public class ContextParameterResolver implements ParameterResolver {
     private static ObjectMapper m;
 
     {
@@ -27,7 +27,7 @@ public class ParamValueResolver implements ParameterResolver {
     private Class type;
     private boolean allowNull;
 
-    public ParamValueResolver(String paramKey, Class type) {
+    public ContextParameterResolver(String paramKey, Class type) {
         this.paramKey = paramKey;
         this.type = type;
         this.allowNull = isAllowNullFor(type);

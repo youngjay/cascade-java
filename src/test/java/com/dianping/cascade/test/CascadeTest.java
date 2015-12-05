@@ -24,16 +24,18 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
-        c.register(Cooperation.class.getSimpleName(), new Cooperation());
-        c.register(User.class.getSimpleName(), new User());
-        c.register(Shop.class.getSimpleName(), new Shop());
+
+
+        c.register(new Cooperation());
+        c.register(new User());
+        c.register(new Shop());
     }
 
     @Test
     public void testNoParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Field field = new Field();
         field.setType("User");
-        Map ret = c.process(field);
+        Map ret = c.process(Lists.newArrayList(field), null);
         Assert.assertEquals(((Collection) PropertyUtils.getProperty(ret, "user")).size(), 2);
     }
 
@@ -46,7 +48,7 @@ public class CascadeTest {
             put("userId", 1);
         }});
 
-        Map ret = c.process(field);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), 1);
     }
@@ -57,7 +59,7 @@ public class CascadeTest {
         field.setType("User");
         field.setCategory("context");
         final int context = 1;
-        Map ret = c.process(field, new HashMap(){{
+        Map ret = c.process(Lists.newArrayList(field), new HashMap(){{
             put("context", context);
         }});
 
@@ -71,7 +73,7 @@ public class CascadeTest {
         field.setCategory("businessException");
 
 
-        Map ret = c.process(field, null);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_businessException"), "[Cascade Error] error");
     }
@@ -83,7 +85,7 @@ public class CascadeTest {
         field.setCategory("runtimeException");
 
 
-        Map ret = c.process(field, null);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_runtimeException"), "[Cascade Error] [User.runtimeException] error");
     }
@@ -106,7 +108,7 @@ public class CascadeTest {
         field.setChildren(Lists.newArrayList(shopField));
 
 
-        Map ret = c.process(field, null);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUser.ownerId"), userId);
     }
@@ -130,7 +132,7 @@ public class CascadeTest {
         field.setChildren(Lists.newArrayList(shopField));
 
 
-        Map ret = c.process(field);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUserName.name"), "user:Someone");
     }
@@ -140,7 +142,7 @@ public class CascadeTest {
         Field field = new Field();
         field.setType("User");
         field.setCategory("load");
-        Map ret = c.process(field);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") not allow null");
 
@@ -154,7 +156,7 @@ public class CascadeTest {
         field.setParams(new HashMap(){{
             put("userId", Lists.newArrayList());
         }});
-        Map ret = c.process(field);
+        Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
     }
