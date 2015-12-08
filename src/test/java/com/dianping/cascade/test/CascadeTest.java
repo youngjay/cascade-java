@@ -2,6 +2,7 @@ package com.dianping.cascade.test;
 
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.Field;
+import com.dianping.cascade.Util;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
@@ -14,6 +15,7 @@ import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,8 +26,6 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
-
-
         c.register(new Cooperation());
         c.register(new User());
         c.register(new Shop());
@@ -159,5 +159,22 @@ public class CascadeTest {
         Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
+    }
+
+    @Test
+    public void parallelPerformance() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field userField = new Field();
+        userField.setType("User");
+        userField.setCategory("many");
+
+        Field shopField1 = new Field();
+        shopField1.setType("shop");
+        shopField1.setCategory("byUser");
+
+        userField.setChildren(Lists.newArrayList(shopField1));
+
+        Map ret = c.process(Lists.newArrayList(userField), null);
+
+        Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
     }
 }

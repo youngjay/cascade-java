@@ -32,4 +32,13 @@ public class User {
     public Object runtimeException() {
         throw new RuntimeException("error");
     }
+
+    public List<UserDTO> many() {
+        int count = 20;
+        List<UserDTO> ret = Lists.newArrayListWithExpectedSize(count);
+        for (int i = 0; i < count; i++) {
+            ret.add(new UserDTO(i, "Someone"));
+        }
+        return ret;
+    }
 }
