@@ -12,6 +12,11 @@ import java.util.Map;
 public class Registry {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
 
+
+    public void register(Object bean) {
+        register(bean.getClass().getSimpleName(), bean);
+    }
+
     public void register(String type, Object bean) {
        for (Method method : bean.getClass().getDeclaredMethods()) {
             if (Modifier.isPublic(method.getModifiers())) {

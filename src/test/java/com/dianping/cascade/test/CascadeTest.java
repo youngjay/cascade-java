@@ -1,8 +1,8 @@
 package com.dianping.cascade.test;
 
-import com.dianping.cascade.Cascade;
-import com.dianping.cascade.Field;
-import com.dianping.cascade.Util;
+import com.dianping.cascade.*;
+import com.dianping.cascade.invoker.DefaultInvoker;
+import com.dianping.cascade.reducer.SerialReducer;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
@@ -22,20 +22,27 @@ import java.util.Map;
  * Created by yangjie on 9/23/15.
  */
 public class CascadeTest {
-    private Cascade c = new Cascade();
+    
+    private Registry registry = new Registry();
+    
+    private Invoker invoker = new DefaultInvoker(registry);
+    
+    private Reducer reducer = new SerialReducer(invoker);
+
+    private Cascade c = new Cascade(reducer);
 
     @BeforeClass
     public void init() {
-        c.register(new Cooperation());
-        c.register(new User());
-        c.register(new Shop());
+        registry.register(new Cooperation());
+        registry.register(new User());
+        registry.register(new Shop());
     }
 
     @Test
     public void testNoParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Field field = new Field();
         field.setType("User");
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
         Assert.assertEquals(((Collection) PropertyUtils.getProperty(ret, "user")).size(), 2);
     }
 
@@ -48,7 +55,7 @@ public class CascadeTest {
             put("userId", 1);
         }});
 
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), 1);
     }
@@ -59,7 +66,7 @@ public class CascadeTest {
         field.setType("User");
         field.setCategory("context");
         final int context = 1;
-        Map ret = c.process(Lists.newArrayList(field), new HashMap(){{
+        Map ret = c.reduce(Lists.newArrayList(field), new HashMap(){{
             put("context", context);
         }});
 
@@ -73,7 +80,7 @@ public class CascadeTest {
         field.setCategory("businessException");
 
 
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_businessException"), "[Cascade Error] error");
     }
@@ -85,7 +92,7 @@ public class CascadeTest {
         field.setCategory("runtimeException");
 
 
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_runtimeException"), "[Cascade Error] [User.runtimeException] error");
     }
@@ -108,7 +115,7 @@ public class CascadeTest {
         field.setChildren(Lists.newArrayList(shopField));
 
 
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUser.ownerId"), userId);
     }
@@ -132,7 +139,7 @@ public class CascadeTest {
         field.setChildren(Lists.newArrayList(shopField));
 
 
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop_byUserName.name"), "user:Someone");
     }
@@ -142,7 +149,7 @@ public class CascadeTest {
         Field field = new Field();
         field.setType("User");
         field.setCategory("load");
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") not allow null");
 
@@ -156,7 +163,7 @@ public class CascadeTest {
         field.setParams(new HashMap(){{
             put("userId", Lists.newArrayList());
         }});
-        Map ret = c.process(Lists.newArrayList(field), null);
+        Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
     }
@@ -173,7 +180,7 @@ public class CascadeTest {
 
         userField.setChildren(Lists.newArrayList(shopField1));
 
-        Map ret = c.process(Lists.newArrayList(userField), null);
+        Map ret = c.reduce(Lists.newArrayList(userField), null);
 
         Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
     }

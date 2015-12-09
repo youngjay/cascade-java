@@ -41,4 +41,8 @@ public class ContextParams {
         return new ContextParams(params, null);
     }
 
+    public static ContextParams create() {
+        return create(null);
+    }
+
 }
