@@ -23,8 +23,13 @@ public class SerialReducer implements Reducer {
         this.invoker = invoker;
     }
 
-    @Override@SuppressWarnings("unchecked")
+    @Override
     public Map reduce(List<Field> fields, ContextParams contextParams) {
+        return reduceFields(fields, contextParams);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map reduceFields(List<Field> fields, ContextParams contextParams) {
         Map results = Maps.newHashMap();
 
         for (Field field : fields) {
@@ -34,7 +39,7 @@ public class SerialReducer implements Reducer {
         return results;
     }
 
-
+    @SuppressWarnings("unchecked")
     private Object reduceField(final Field field, ContextParams parentContextParams) {
 
         final ContextParams contextParams = parentContextParams.extend(field.getParams());
@@ -52,17 +57,22 @@ public class SerialReducer implements Reducer {
         }
 
         if (result instanceof List) {
-            return Lists.transform((List) result, new Function() {
-                @Override
-                public Object apply(Object input) {
-                    return processFieldsWithResults(input, field.getChildren(), contextParams);
-                }
-            });
+            return reduceResults((List) result, field.getChildren(), contextParams);
         } else {
             return processFieldsWithResults(result, field.getChildren(), contextParams);
         }
-
     }
+
+    @SuppressWarnings("unchecked")
+    private List reduceResults(List<Object> results, final List<Field> fields, final ContextParams contextParams) {
+        return Lists.transform(results, new Function() {
+            @Override
+            public Object apply(Object input) {
+                return processFieldsWithResults(input, fields, contextParams);
+            }
+        });
+    }
+
 
     @SuppressWarnings("unchecked")
     private Map processFieldsWithResults(Object result, List<Field> fields, ContextParams parentContextParams) {
@@ -72,6 +82,4 @@ public class SerialReducer implements Reducer {
         resultMap.putAll(subResultMap);
         return resultMap;
     }
-
-
 }

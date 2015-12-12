@@ -17,6 +17,8 @@ import java.util.concurrent.Future;
 
 /**
  * Created by yangjie on 12/5/15.
+ *
+ * WRONG IMPLEMENT
  */
 public class ParallelReducer implements Reducer {
     private Invoker invoker;

@@ -1,8 +1,6 @@
 package com.dianping.cascade.test;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invoker.DefaultInvoker;
-import com.dianping.cascade.reducer.SerialReducer;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
@@ -22,20 +20,14 @@ import java.util.Map;
  * Created by yangjie on 9/23/15.
  */
 public class CascadeTest {
-    
-    private Registry registry = new Registry();
-    
-    private Invoker invoker = new DefaultInvoker(registry);
-    
-    private Reducer reducer = new SerialReducer(invoker);
 
-    private Cascade c = new Cascade(reducer);
+    private Cascade c = new Cascade();
 
     @BeforeClass
     public void init() {
-        registry.register(new Cooperation());
-        registry.register(new User());
-        registry.register(new Shop());
+        c.register(new Cooperation());
+        c.register(new User());
+        c.register(new Shop());
     }
 
     @Test
@@ -58,6 +50,7 @@ public class CascadeTest {
         Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), 1);
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.name"), "Someone");
     }
 
     @Test
@@ -166,6 +159,42 @@ public class CascadeTest {
         Map ret = c.reduce(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
+    }
+
+    @Test
+    public void testProps() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field userField = new Field();
+        final Integer id = 99;
+        userField.setType("User");
+        userField.setCategory("load");
+        userField.setParams(new HashMap(){{
+            put("userId", id);
+        }});
+        userField.setProps(Lists.newArrayList("id"));
+
+        Map ret = c.reduce(Lists.newArrayList(userField), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), id);
+        Assert.assertNull(PropertyUtils.getProperty(ret, "user_load.name"));
+
+    }
+
+    @Test
+    public void testPropsException()  throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field userField = new Field();
+        final Integer id = 99;
+        userField.setType("User");
+        userField.setCategory("load");
+        userField.setParams(new HashMap(){{
+            put("userId", id);
+        }});
+        userField.setProps(Lists.newArrayList("foo"));
+
+
+        Map ret = c.reduce(Lists.newArrayList(userField), null);
+
+
+        Assert.assertTrue(((String) PropertyUtils.getProperty(ret, "user_load")).startsWith("[Cascade Error]"));
     }
 
     @Test

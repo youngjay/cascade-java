@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
  * Created by yangjie on 12/5/15.
  */
 @AllArgsConstructor
-public class DefaultInvoker implements Invoker {
+public class RegistryInvoker implements Invoker {
     private Registry registry;
 
     @Override

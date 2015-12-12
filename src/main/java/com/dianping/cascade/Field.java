@@ -15,11 +15,15 @@ import java.util.Map;
 public class Field {
     public final static String DEFAULT_CATEGORY = "query";
 
+    private final static List<Field> EMPTY_CHILDREN = Lists.newArrayList();
+    private final static List<String> ALL_PROPS = Lists.newArrayList();
+
     private String as;
     private String type;
     private String category = DEFAULT_CATEGORY;
     private Map params = Maps.newHashMap();
-    private List<Field> children = Lists.newArrayList();
+    private List<Field> children = EMPTY_CHILDREN;
+    private List<String> props = ALL_PROPS;
 
     public String getComputedAs() {
         String as = getAs();
