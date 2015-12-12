@@ -7,7 +7,6 @@ import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import java.util.Map;
  * Created by yangjie on 12/12/15.
  */
 @AllArgsConstructor
-public class PropsPicker implements Invoker {
+public class PropsSupport implements Invoker {
     private Invoker invoker;
 
     @Override

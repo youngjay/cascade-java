@@ -1,6 +1,6 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.invoker.PropsPicker;
+import com.dianping.cascade.invoker.PropsSupport;
 import com.dianping.cascade.invoker.RegistryInvoker;
 import com.dianping.cascade.reducer.SerialReducer;
 
@@ -16,7 +16,7 @@ public class Cascade {
 
     public Cascade() {
         registry = new Registry();
-        Invoker invoker = new PropsPicker(new RegistryInvoker(registry));
+        Invoker invoker = new PropsSupport(new RegistryInvoker(registry));
         reducer = new SerialReducer(invoker);
     }
 
