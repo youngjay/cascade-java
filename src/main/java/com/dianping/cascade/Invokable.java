@@ -45,7 +45,7 @@ public class Invokable {
             parameterIndex += 1;
 
             if (parameterResolvers.size() != parameterIndex) {
-                throw new IllegalArgumentException(getLocation(method.getName()) + "every arguments must have @Param annotation");
+                throw new IllegalArgumentException(getLocation(method.getName()) + "every arguments must have @Param or @Entity annotation");
             }
         }
     }
