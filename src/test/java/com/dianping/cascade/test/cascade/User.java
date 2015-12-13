@@ -1,6 +1,7 @@
 package com.dianping.cascade.test.cascade;
 
 import com.dianping.cascade.BusinessException;
+import com.dianping.cascade.annotation.Entity;
 import com.dianping.cascade.annotation.Param;
 import com.dianping.cascade.test.model.Context;
 import com.dianping.cascade.test.model.UserDTO;
@@ -40,5 +41,9 @@ public class User {
             ret.add(new UserDTO(i, "Someone"));
         }
         return ret;
+    }
+
+    public UserDTO add(@Entity UserDTO user) {
+        return new UserDTO(user.getId() + 1, (user.getName() == null ? "" : user.getName()) + "1");
     }
 }

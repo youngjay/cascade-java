@@ -1,5 +1,7 @@
 package com.dianping.cascade;
 
+import com.google.common.collect.Maps;
+
 import java.util.Map;
 
 /**
@@ -32,6 +34,17 @@ public class ContextParams {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
+    public Map getAll() {
+        Map ret = Maps.newHashMap();
+        if (parent != null) {
+            ret.putAll(parent.getAll());
+        }
+        if (current != null) {
+            ret.putAll(current);
+        }
+        return ret;
+    }
 
     public ContextParams extend(Map params) {
         return new ContextParams(params, this);

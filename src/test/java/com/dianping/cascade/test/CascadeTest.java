@@ -4,6 +4,7 @@ import com.dianping.cascade.*;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
+import com.dianping.cascade.test.model.UserDTO;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.testng.Assert;
@@ -212,5 +213,37 @@ public class CascadeTest {
         Map ret = c.reduce(Lists.newArrayList(userField), null);
 
         Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
+    }
+
+    @Test
+    public void testEntity() throws Exception{
+        Field userField = new Field();
+        userField.setType("User");
+        userField.setCategory("add");
+        userField.setParams(new HashMap() {{
+            put("id", 1);
+            put("name", "someone");
+        }});
+
+        Map ret = c.reduce(Lists.newArrayList(userField), null);
+
+        Assert.assertEquals(((UserDTO) ret.get("user_add")).getId(), 2);
+        Assert.assertEquals(((UserDTO) ret.get("user_add")).getName(), "someone1");
+    }
+
+    @Test
+    public void testEntityWithNotCompleteOrMoreProperties() throws Exception{
+        Field userField = new Field();
+        userField.setType("User");
+        userField.setCategory("add");
+        userField.setParams(new HashMap() {{
+            put("id", 1);
+            put("ppppp", "someone");
+        }});
+
+        Map ret = c.reduce(Lists.newArrayList(userField), null);
+
+        Assert.assertEquals(((UserDTO) ret.get("user_add")).getId(), 2);
+        Assert.assertEquals(((UserDTO) ret.get("user_add")).getName(), "1");
     }
 }

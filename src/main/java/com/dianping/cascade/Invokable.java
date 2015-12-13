@@ -1,7 +1,9 @@
 package com.dianping.cascade;
 
+import com.dianping.cascade.annotation.Entity;
 import com.dianping.cascade.annotation.Param;
-import com.dianping.cascade.parameterresolver.ContextParameterResolver;
+import com.dianping.cascade.parameterresolver.EntityResolver;
+import com.dianping.cascade.parameterresolver.ParamResolver;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
@@ -31,7 +33,11 @@ public class Invokable {
         for (Annotation[] annotations : method.getParameterAnnotations()) {
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Param) {
-                    parameterResolvers.add(new ContextParameterResolver(((Param) annotation).value(), types[parameterIndex]));
+                    parameterResolvers.add(new ParamResolver(((Param) annotation).value(), types[parameterIndex]));
+                    break;
+                }
+                if (annotation instanceof Entity) {
+                    parameterResolvers.add(new EntityResolver(types[parameterIndex]));
                     break;
                 }
             }

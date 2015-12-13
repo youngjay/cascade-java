@@ -12,13 +12,8 @@ import java.util.List;
  * Created by yangjie on 10/24/15.
  */
 @Data
-public class ContextParameterResolver implements ParameterResolver {
-    private static ObjectMapper m;
-
-    {
-        m = new ObjectMapper();
-//        m.configure(SerializationConfig.Feature., false);
-    }
+public class ParamResolver implements ParameterResolver {
+    private static ObjectMapper m = new ObjectMapper();
 
     private static List<? extends  Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
 
@@ -27,7 +22,7 @@ public class ContextParameterResolver implements ParameterResolver {
     private Class type;
     private boolean allowNull;
 
-    public ContextParameterResolver(String paramKey, Class type) {
+    public ParamResolver(String paramKey, Class type) {
         this.paramKey = paramKey;
         this.type = type;
         this.allowNull = isAllowNullFor(type);
