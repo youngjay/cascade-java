@@ -12,7 +12,6 @@ import java.util.Map;
 public class Registry {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
 
-
     public void register(Object bean) {
         register(bean.getClass().getSimpleName(), bean);
     }
