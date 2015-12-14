@@ -193,7 +193,7 @@ public class CascadeAction extends AjaxBaseWithStatus {
     2. 它的parent的返回值（如果有的话）
     3. 它的parent的所有参数
     
-    例如：
+    例如:
     
     ```
      public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
@@ -206,7 +206,7 @@ public class CascadeAction extends AjaxBaseWithStatus {
     用上下文的参数构造一个bean
     
     
-    例如：
+    例如:
     
     ```
      public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
