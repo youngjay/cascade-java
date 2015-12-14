@@ -1,5 +1,7 @@
 # cascade
 
+## current version: 3.0
+
 
 ## 解决的问题
 一个页面可能由多个后台模块组成，前端因为性能的关系，会要求服务端把所有的数据拼在一个请求里面返回。
@@ -27,15 +29,15 @@ cascade-java + servlet + ajax
 cascade-java + spring + pigeon + cascade-client
 
 
-## cascade处理方式
+## 方法
 
-- 注册typehandler
+- register
 
 ```
-cascade.register(String type, Object handler)
+cascade.register(Object bean)
 ```
 
-- 处理数据
+- process
 
 ```
 cascade.process(List<Field> fields)
@@ -65,12 +67,6 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 
 然后把每个方法的返回值拼装起来，汇总之后整个返回
 
-## 优点
-- 服务端开发人员只要实现每个业务的方法就好了,不需要考虑页面的需求
-- 页面随时可以根据需求增加或者减少字段,而不用知会后端
-- 协议是固定的,不用记多个url
-
-
 ## 开始使用
 - 先引入maven
 
@@ -84,7 +80,7 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 
 - 注册cascade
 
-如果与spring继承的话,只要简单的配置2个bean即可
+如果与spring集成,只要简单的配置2个bean即可
 
 ```
 <bean class="com.dianping.cascade.spring.CascadeFactory" id="cascadeFactory" />
@@ -185,15 +181,37 @@ public class CascadeAction extends AjaxBaseWithStatus {
 
 ```
 
-- 通过@Param("xxx") 获取参数
 
-每个方法可以获取上下文的参数包括
+## 注释
 
-1. params 字段传入的
-2. 它的parent的返回值（如果有的话）
-3. 它的parent的所有参数
+- @Param(key)
+    从上下文获取某个key的值
+
+    上下文的参数包括
+    
+    1. params 字段传入的
+    2. 它的parent的返回值（如果有的话）
+    3. 它的parent的所有参数
+    
+    例如：
+    
+    ```
+     public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
+    ```
 
 这些参数都会被组织成map的形式，可以通过@Param("key")去获取
+
+- @Entity
+
+    用上下文的参数构造一个bean
+    
+    
+    例如：
+    
+    ```
+     public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
+    ```
+
 
 - 异常处理
 
