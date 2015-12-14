@@ -74,9 +74,12 @@ cascade会根据之前注册的type自动分发到对应的对象的category指�
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
-    <version>2.0</version>
+    <version>${version}</version>
 </dependency>
 ```
+
+[cascade version] (http://mvn.dianpingoa.com/webapp/search/artifact/?1&q=cascade)
+
 
 - 注册cascade
 
