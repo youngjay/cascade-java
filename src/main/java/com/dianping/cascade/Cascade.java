@@ -20,7 +20,7 @@ public class Cascade {
         reducer = new SerialReducer(invoker);
     }
 
-    public Map reduce(List<Field> fields, Map contextParams) {
+    public Map process(List<Field> fields, Map contextParams) {
         return reducer.reduce(fields, ContextParams.create(contextParams));
     }
 
