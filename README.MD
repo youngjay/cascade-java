@@ -33,6 +33,8 @@ cascade-java + spring + pigeon + cascade-client
 
 - register
 
+注册处理的对象，class.getSimpleName() 作为field的type， 所有public method.getMethodName() 作为category
+
 ```
 cascade.register(Object bean)
 ```
@@ -40,32 +42,78 @@ cascade.register(Object bean)
 - process
 
 ```
-cascade.process(List<Field> fields)
+cascade.process(List<Field> fields, Map contextParams)
 ```
 
-fields的数据内容类似于
+处理fields，contextParams可以传入上下文数据。
 
-```
-[
-    {
-        "type": "User",
-        "params":  {
-            "shopId": 2334123
+
+## Field属性
+
+- type(String)： 表示该field返回数据的类型，必填
+- category(String, default=“query"l)： 表示该field在type中的分类
+- as(String, optional)：这个field返回的数据将以哪个字段名挂在返回的对象中，如果没有设定的话，就看category  如果没有category的话，用type；有category的话，用$type_$category
+- params(Map, optional)：额外的参数
+- children(List<Field>, optional)：子属性
+- props(List<String>, optional): 需要返回的属性值。默认是返回全部
+
+    例子
+    
+    ```
+    [
+        {
+            "type": "User",
+            "params":  {
+                "shopId": 2334123
+            },
+            "category":"queryPublicSeaInfo",
+            "as":"publicSeaInfo",
+            "props": ["loginId", "realName"]
         },
-        "category":"queryPublicSeaInfo",
-        "as":"publicSeaInfo"
-    },
-    {
-        "type": "Enum",
-        "category":"salesTypeEnum",
-        "as":"salesTypeEnum",
-    }
-]
-```
+        {
+            "type": "Enum",
+            "category":"salesTypeEnum",
+            "as":"salesTypeEnum",
+        }
+    ]
+    ```
+    
+## 注释
 
-cascade会根据之前注册的type自动分发到对应的对象的category指定的方法（如果不指定就是“query”方法）
+- @Param(key)
+    从上下文获取某个key的值
 
-然后把每个方法的返回值拼装起来，汇总之后整个返回
+    上下文的参数包括
+    
+    1. params 字段传入的
+    2. 它的parent的返回值（如果有的话）
+    3. 它的parent的所有参数
+    
+    例如:
+    
+    ```
+     public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
+    ```
+
+这些参数都会被组织成map的形式，可以通过@Param("key")去获取
+
+- @Entity
+
+    用上下文的参数构造一个bean
+    
+    
+    例如:
+    
+    ```
+     public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
+    ```
+
+
+## 异常处理
+
+cascade默认会对抛出的异常标注上异常出现的位置类似于 ```[User.byId] loginId -1233 not exists```
+
+如果不想显示位置的话，请抛出 ``` com.dianping.cascade.BusinessException ```
 
 ## 开始使用
 - 先引入maven
@@ -185,41 +233,6 @@ public class CascadeAction extends AjaxBaseWithStatus {
 ```
 
 
-## 注释
 
-- @Param(key)
-    从上下文获取某个key的值
-
-    上下文的参数包括
-    
-    1. params 字段传入的
-    2. 它的parent的返回值（如果有的话）
-    3. 它的parent的所有参数
-    
-    例如:
-    
-    ```
-     public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
-    ```
-
-这些参数都会被组织成map的形式，可以通过@Param("key")去获取
-
-- @Entity
-
-    用上下文的参数构造一个bean
-    
-    
-    例如:
-    
-    ```
-     public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
-    ```
-
-
-- 异常处理
-
-cascade默认会对抛出的异常标注上异常出现的位置类似于 ```[User.byId] loginId -1233 not exists```
-
-如果不想显示位置的话，请抛出 ``` com.dianping.cascade.BusinessException ```
 
 
