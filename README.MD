@@ -89,13 +89,14 @@ cascade.process(List<Field> fields, Map contextParams)
     2. 它的parent的返回值（如果有的话）
     3. 它的parent的所有参数
     
-    例如:
     
-    ```
-     public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
-    ```
+        例如:
+        
+        ```
+         public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
+        ```
 
-这些参数都会被组织成map的形式，可以通过@Param("key")去获取
+        这些参数都会被组织成map的形式，可以通过@Param("key")去获取
 
 - @Entity
 
