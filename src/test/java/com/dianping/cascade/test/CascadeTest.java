@@ -1,6 +1,7 @@
 package com.dianping.cascade.test;
 
 import com.dianping.cascade.*;
+import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
@@ -22,13 +23,13 @@ import java.util.Map;
  */
 public class CascadeTest {
 
-    private Cascade c = new Cascade();
+    private Cascade c;
+
 
     @BeforeClass
     public void init() {
-        c.register(new Cooperation());
-        c.register(new User());
-        c.register(new Shop());
+        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop()));
+        c = factory.create();
     }
 
     @Test
