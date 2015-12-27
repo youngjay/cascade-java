@@ -6,6 +6,7 @@ import com.dianping.cascade.annotation.Param;
 import com.dianping.cascade.test.model.Context;
 import com.dianping.cascade.test.model.UserDTO;
 import com.google.common.collect.Lists;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -45,5 +46,10 @@ public class User {
 
     public UserDTO add(@Entity UserDTO user) {
         return new UserDTO(user.getId() + 1, (user.getName() == null ? "" : user.getName()) + "1");
+    }
+
+//    @Cacheable
+    public UserDTO cachedLoad(@Param("userId") int id) {
+        return new UserDTO(id, "Someone");
     }
 }

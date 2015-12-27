@@ -12,6 +12,8 @@ import java.util.Map;
 public class Registry {
     private Map<String, Invokable> invokableMap = Maps.newHashMap();
 
+    private InvokableFactory invokableFactory = new InvokableFactory();
+
     public void register(Object bean) {
         register(bean.getClass().getSimpleName(), bean);
     }
@@ -46,7 +48,7 @@ public class Registry {
             throw new RuntimeException(mapKey + " has already registered");
         }
 
-        invokableMap.put(mapKey, new Invokable(target, method));
+        invokableMap.put(mapKey, invokableFactory.create(target, method));
     }
 
 }
