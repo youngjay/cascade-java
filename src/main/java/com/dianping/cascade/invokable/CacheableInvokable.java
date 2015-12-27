@@ -2,30 +2,34 @@ package com.dianping.cascade.invokable;
 
 import com.dianping.cascade.ParameterResolvers;
 import com.dianping.cascade.annotation.Cacheable;
-import org.apache.commons.collections.map.LRUMap;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangjie on 12/27/15.
  */
 public class CacheableInvokable extends DefaultInvokable {
-    private Map resultsMap;
+    private Cache<List, Object> resultsCache;
 
     public CacheableInvokable(Object target, Method method, ParameterResolvers parameterResolvers, Cacheable cacheable) {
         super(target, method, parameterResolvers);
-        resultsMap = new LRUMap(cacheable.size());
+
+        resultsCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(cacheable.expire(), TimeUnit.MINUTES)
+                .build();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Object invoke(List args) {
-        Object result = resultsMap.get(args);
+        Object result = resultsCache.getIfPresent(args);
         if (result == null) {
             result = super.invoke(args);
-            resultsMap.put(args, result);
+            resultsCache.put(args, result);
         }
         return result;
     }

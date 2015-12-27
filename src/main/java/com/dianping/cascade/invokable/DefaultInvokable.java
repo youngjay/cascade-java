@@ -49,7 +49,7 @@ public class DefaultInvokable implements Invokable {
     }
 
     @Override
-    public Object invoke(final ContextParams params) {
+    public Object invoke(ContextParams params) {
         return invoke(parameterResolvers.resolve(params));
     }
 

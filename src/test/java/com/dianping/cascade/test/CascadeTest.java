@@ -284,20 +284,5 @@ public class CascadeTest {
 
     }
 
-    @Test
-    // 这个测试要看命令行
-    // cachedload called:1 应该出现两次
-    // 而且看cache map的size 应该是永远是1
-    public void testCacheSize() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
-        Field field = getUserFieldForCacheTest("aa");
-
-        Map ret = c.process(Lists.newArrayList(field), null);
-
-
-        Field field1 = getUserFieldForCacheTest("bb");
-
-        Map ret1 = c.process(Lists.newArrayList(field1), null);
-
-    }
 }

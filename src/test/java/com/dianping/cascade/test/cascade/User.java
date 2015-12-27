@@ -48,7 +48,7 @@ public class User {
     }
 
 
-    @Cacheable(size = 1)
+    @Cacheable
     public UserDTO cachedLoad(@Param("userId") int id, @Param("object") UserDTO user) {
         System.out.println("cachedload called:" + id);
         return new UserDTO(id, "Someone");
