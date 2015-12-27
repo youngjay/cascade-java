@@ -89,8 +89,6 @@ cascade.process(List<Field> fields, Map contextParams)
     2. 它的parent的返回值（如果有的话）
     3. 它的parent的所有参数
     
-    
-        例如:
         
         ```
          public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
@@ -102,13 +100,25 @@ cascade.process(List<Field> fields, Map contextParams)
 
     用上下文的参数构造一个bean
     
-    
-    例如:
-    
+        
     ```
      public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
     ```
 
+- @Cacheable
+    此方法的返回结果可以被缓存
+    
+    参数:
+    
+        - expireHours: int
+            
+            可以被缓存多少小时，默认1
+            
+    ```
+    @Cacheable
+    public UserDTO load(@Param("userId") int id) 
+        
+    ```
 
 ## 异常处理
 

@@ -19,7 +19,7 @@ public class CacheableInvokable extends DefaultInvokable {
         super(target, method, parameterResolvers);
 
         resultsCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(cacheable.expire(), TimeUnit.MINUTES)
+                .expireAfterWrite(cacheable.expireHours(), TimeUnit.HOURS)
                 .build();
     }
 
