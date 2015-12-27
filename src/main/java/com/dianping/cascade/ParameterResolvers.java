@@ -26,13 +26,15 @@ public class ParameterResolvers {
         Class<?>[] types = method.getParameterTypes();
 
         for (Annotation[] annotations : method.getParameterAnnotations()) {
+            Class type = types[parameterIndex];
+
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Param) {
-                    parameterResolvers.add(new ParamResolver(((Param) annotation).value(), types[parameterIndex]));
+                    parameterResolvers.add(new ParamResolver(((Param) annotation).value(), type));
                     break;
                 }
                 if (annotation instanceof Entity) {
-                    parameterResolvers.add(new EntityResolver(types[parameterIndex]));
+                    parameterResolvers.add(new EntityResolver(type));
                     break;
                 }
             }

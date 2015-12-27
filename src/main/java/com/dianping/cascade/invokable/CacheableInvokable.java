@@ -2,7 +2,6 @@ package com.dianping.cascade.invokable;
 
 import com.dianping.cascade.ParameterResolvers;
 import com.dianping.cascade.annotation.Cacheable;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.map.LRUMap;
 
 import java.lang.reflect.Method;
