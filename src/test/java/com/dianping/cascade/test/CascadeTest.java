@@ -247,4 +247,57 @@ public class CascadeTest {
         Assert.assertEquals(((UserDTO) ret.get("user_add")).getId(), 2);
         Assert.assertEquals(((UserDTO) ret.get("user_add")).getName(), "1");
     }
+
+
+    private Field getUserFieldForCacheTest(final String name) {
+
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("cachedLoad");
+        field.setParams(new HashMap() {{
+            put("userId", 1);
+            put("object", new UserDTO(1, name));
+        }});
+
+        return field;
+
+    }
+
+    private Field getFixedUserFieldForCacheTest() {
+        return getUserFieldForCacheTest("ddd");
+    }
+
+    @Test
+    public void testCache() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        Field field = getFixedUserFieldForCacheTest();
+
+        Map ret = c.process(Lists.newArrayList(field), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_cachedLoad.id"), 0);
+
+
+        Field field1 = getFixedUserFieldForCacheTest();
+
+        Map ret1 = c.process(Lists.newArrayList(field1), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret1, "user_cachedLoad.id"), 0);
+    }
+
+    @Test
+    public void testCacheSize() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        Field field = getUserFieldForCacheTest("aa");
+
+        Map ret = c.process(Lists.newArrayList(field), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_cachedLoad.id"), 0);
+
+
+        Field field1 = getUserFieldForCacheTest("bb");
+
+        Map ret1 = c.process(Lists.newArrayList(field1), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret1, "user_cachedLoad.id"), 1);
+    }
 }

@@ -7,6 +7,7 @@ import com.dianping.cascade.parameterresolver.EntityResolver;
 import com.dianping.cascade.parameterresolver.ParamResolver;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import lombok.AllArgsConstructor;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -15,21 +16,13 @@ import java.util.List;
 /**
  * Created by yangjie on 12/5/15.
  */
+@AllArgsConstructor
 public class DefaultInvokable implements Invokable {
     private Object target;
     private Method method;
     private ParameterResolvers parameterResolvers;
 
-    public DefaultInvokable(Object target, Method method, ParameterResolvers parameterResolvers) {
-        this.target = target;
-        this.method = method;
-        this.parameterResolvers = parameterResolvers;
-    }
-
-    @Override
-    public Object invoke(final ContextParams params) {
-        List args = parameterResolvers.resolve(params);
-
+    protected Object invoke(List args) {
         try {
             return method.invoke(target, args.toArray());
         } catch (Exception ex) {
@@ -55,6 +48,10 @@ public class DefaultInvokable implements Invokable {
         }
     }
 
+    @Override
+    public Object invoke(final ContextParams params) {
+        return invoke(parameterResolvers.resolve(params));
+    }
 
     private String getLocation(String methodName) {
         return String.format("[%s.%s] ", target.getClass().getSimpleName(), methodName);
