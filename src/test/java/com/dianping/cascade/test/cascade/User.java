@@ -47,10 +47,10 @@ public class User {
         return new UserDTO(user.getId() + 1, (user.getName() == null ? "" : user.getName()) + "1");
     }
 
-    private int loadUnique = 0;
 
     @Cacheable(size = 1)
     public UserDTO cachedLoad(@Param("userId") int id, @Param("object") UserDTO user) {
-        return new UserDTO(loadUnique++, "Someone");
+        System.out.println("cachedload called:" + id);
+        return new UserDTO(id, "Someone");
     }
 }
