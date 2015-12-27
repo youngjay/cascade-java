@@ -1,15 +1,8 @@
 package com.dianping.cascade.invokable;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.annotation.Entity;
-import com.dianping.cascade.annotation.Param;
-import com.dianping.cascade.parameterresolver.EntityResolver;
-import com.dianping.cascade.parameterresolver.ParamResolver;
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -22,35 +15,38 @@ public class DefaultInvokable implements Invokable {
     private Method method;
     private ParameterResolvers parameterResolvers;
 
-    protected Object invoke(List args) {
+    protected Object invokeByArgs(List args) {
         try {
             return method.invoke(target, args.toArray());
         } catch (Exception ex) {
-            Throwable cause = ex.getCause();
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public Object invoke(ContextParams params) {
+        try {
+            return invokeByArgs(parameterResolvers.resolve(params));
+        } catch (Exception ex) {
+            Throwable cause = getCause(ex);
 
             if (cause instanceof BusinessException) {
                 throw (BusinessException) cause;
             }
 
-            String msg;
+            String msg = cause.getMessage();
 
-            if (cause == null) {
-                msg = ex.getMessage();
-            } else {
-                msg = cause.getMessage();
-
-                if (msg == null) {
-                    msg = cause.getClass().getSimpleName();
-                }
+            if (msg == null) {
+                msg = cause.getClass().getSimpleName();
             }
 
             throw new RuntimeException(getLocation(method.getName()) + msg);
         }
     }
 
-    @Override
-    public Object invoke(ContextParams params) {
-        return invoke(parameterResolvers.resolve(params));
+    private Throwable getCause(Throwable outer) {
+        Throwable inner = outer.getCause();
+        return inner == null ? outer : getCause(inner);
     }
 
     private String getLocation(String methodName) {

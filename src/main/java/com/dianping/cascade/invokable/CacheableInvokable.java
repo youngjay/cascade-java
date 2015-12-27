@@ -7,6 +7,8 @@ import com.google.common.cache.CacheBuilder;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,12 +27,16 @@ public class CacheableInvokable extends DefaultInvokable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object invoke(List args) {
-        Object result = resultsCache.getIfPresent(args);
-        if (result == null) {
-            result = super.invoke(args);
-            resultsCache.put(args, result);
+    public Object invokeByArgs(final List args) {
+        try {
+            return resultsCache.get(args, new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    return CacheableInvokable.super.invokeByArgs(args);
+                }
+            });
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
         }
-        return result;
     }
 }
