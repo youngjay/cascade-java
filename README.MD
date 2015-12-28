@@ -115,7 +115,7 @@ cascade.process(List<Field> fields, Map contextParams)
             多少分钟过期，默认永不过期
             
     ```
-    @Cacheable
+    @Cacheable(expireMinutes=30)
     public UserDTO load(@Param("userId") int id) 
         
     ```
