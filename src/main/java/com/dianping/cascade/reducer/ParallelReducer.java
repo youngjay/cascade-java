@@ -21,14 +21,14 @@ import java.util.concurrent.Future;
  * WRONG IMPLEMENT
  */
 public class ParallelReducer implements Reducer {
-    private Invoker invoker;
+    private FieldInvoker fieldInvoker;
     ExecutorService executorService;
 
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
 
-    public ParallelReducer(Invoker invoker) {
-        this.invoker = invoker;
+    public ParallelReducer(FieldInvoker fieldInvoker) {
+        this.fieldInvoker = fieldInvoker;
         this.executorService = Executors.newFixedThreadPool(30);
     }
 
@@ -86,7 +86,7 @@ public class ParallelReducer implements Reducer {
         Object result;
 
         try {
-            result = invoker.invoke(field, contextParams);
+            result = fieldInvoker.invoke(field, contextParams);
         } catch (Exception ex) {
             return CASCADE_ERROR + ex.getMessage();
         }

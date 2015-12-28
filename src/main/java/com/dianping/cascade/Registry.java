@@ -10,9 +10,9 @@ import java.util.Map;
  * Created by yangjie on 12/5/15.
  */
 public class Registry {
-    private Map<String, Invokable> invokableMap = Maps.newHashMap();
+    private Map<String, ContextParamsInvoker> invokableMap = Maps.newHashMap();
 
-    private InvokableFactory invokableFactory = new InvokableFactory();
+    private ContextParamsInvokerFactory contextParamsInvokerFactory = new ContextParamsInvokerFactory();
 
     public void register(Object bean) {
         register(bean.getClass().getSimpleName(), bean);
@@ -26,13 +26,13 @@ public class Registry {
        }
     }
 
-    public Invokable get(String type, String methodName) {
+    public ContextParamsInvoker get(String type, String methodName) {
         String mapKey = generateKey(type, methodName);
-        Invokable invokable = invokableMap.get(mapKey);
-        if (invokable == null) {
+        ContextParamsInvoker contextParamsInvoker = invokableMap.get(mapKey);
+        if (contextParamsInvoker == null) {
             throw new RuntimeException(mapKey + " has not registered");
         }
-        return invokable;
+        return contextParamsInvoker;
     }
 
     private String generateKey(String type, String methodName) {
@@ -48,7 +48,7 @@ public class Registry {
             throw new RuntimeException(mapKey + " has already registered");
         }
 
-        invokableMap.put(mapKey, invokableFactory.create(target, method));
+        invokableMap.put(mapKey, contextParamsInvokerFactory.create(target, method));
     }
 
 }

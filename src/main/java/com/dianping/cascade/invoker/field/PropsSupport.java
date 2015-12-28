@@ -1,8 +1,8 @@
-package com.dianping.cascade.invoker;
+package com.dianping.cascade.invoker.field;
 
 import com.dianping.cascade.ContextParams;
 import com.dianping.cascade.Field;
-import com.dianping.cascade.Invoker;
+import com.dianping.cascade.FieldInvoker;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -14,12 +14,12 @@ import java.util.Map;
  * Created by yangjie on 12/12/15.
  */
 @AllArgsConstructor
-public class PropsSupport implements Invoker {
-    private Invoker invoker;
+public class PropsSupport implements FieldInvoker {
+    private FieldInvoker fieldInvoker;
 
     @Override
     public Object invoke(Field field, ContextParams contextParams) {
-        Object result = invoker.invoke(field, contextParams);
+        Object result = fieldInvoker.invoke(field, contextParams);
 
         List<String> props = field.getProps();
 

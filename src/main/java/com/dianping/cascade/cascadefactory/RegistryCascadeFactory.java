@@ -1,8 +1,8 @@
 package com.dianping.cascade.cascadefactory;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invoker.PropsSupport;
-import com.dianping.cascade.invoker.RegistryInvoker;
+import com.dianping.cascade.invoker.field.PropsSupport;
+import com.dianping.cascade.invoker.field.RegistryFieldInvoker;
 import com.dianping.cascade.reducer.SerialReducer;
 
 import java.util.List;
@@ -20,8 +20,8 @@ public class RegistryCascadeFactory implements CascadeFactory {
 
     @Override
     public Cascade create() {
-        Invoker invoker = new PropsSupport(new RegistryInvoker(registry));
-        final Reducer reducer = new SerialReducer(invoker);
+        FieldInvoker fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
+        final Reducer reducer = new SerialReducer(fieldInvoker);
 
         return new Cascade() {
             @Override

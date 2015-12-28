@@ -2,12 +2,10 @@ package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +15,10 @@ import java.util.Map;
 public class SerialReducer implements Reducer {
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
-    private Invoker invoker;
+    private FieldInvoker fieldInvoker;
 
-    public SerialReducer(Invoker invoker) {
-        this.invoker = invoker;
+    public SerialReducer(FieldInvoker fieldInvoker) {
+        this.fieldInvoker = fieldInvoker;
     }
 
     @Override
@@ -47,7 +45,7 @@ public class SerialReducer implements Reducer {
         Object result;
 
         try {
-            result = invoker.invoke(field, contextParams);
+            result = fieldInvoker.invoke(field, contextParams);
         } catch (Exception ex) {
             return CASCADE_ERROR + ex.getMessage();
         }

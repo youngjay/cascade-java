@@ -11,5 +11,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cacheable {
-    int expireHours() default 1;
+    /**
+     * default no expire
+     * @return
+     */
+    int expireMinutes() default -1;
 }

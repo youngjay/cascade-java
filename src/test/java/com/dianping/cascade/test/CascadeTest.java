@@ -276,8 +276,6 @@ public class CascadeTest {
 
         Map ret = c.process(Lists.newArrayList(field), null);
 
-
-
         Field field1 = getFixedUserFieldForCacheTest();
 
         Map ret1 = c.process(Lists.newArrayList(field1), null);

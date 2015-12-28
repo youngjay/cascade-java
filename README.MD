@@ -110,9 +110,9 @@ cascade.process(List<Field> fields, Map contextParams)
     
     参数:
     
-        - expireHours: int
+        - expireMinutes: int
             
-            可以被缓存多少小时，默认1
+            多少分钟过期，默认永不过期
             
     ```
     @Cacheable
