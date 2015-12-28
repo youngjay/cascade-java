@@ -145,8 +145,8 @@ cascade默认会对抛出的异常标注上异常出现的位置类似于 ```[Us
 如果与spring集成,只要简单的配置2个bean即可
 
 ```
-<bean class="com.dianping.cascade.spring.CascadeFactory" id="cascadeFactory" />
-<bean id="cascade" factory-bean="cascadeFactory" factory-method="create"  />
+    <bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" />
+    <bean factory-bean="cascadeFactory" factory-method="create" />
 ```
 
 然后给需要注入的bean实现 CascadeAware接口作为标识,例如
