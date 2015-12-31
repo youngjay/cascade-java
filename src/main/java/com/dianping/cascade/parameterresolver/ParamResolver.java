@@ -13,17 +13,18 @@ import java.util.List;
  */
 @Data
 public class ParamResolver implements ParameterResolver {
-    private static ObjectMapper m = new ObjectMapper();
+    private static final ObjectMapper m = new ObjectMapper();
 
-    private static List<? extends  Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
+    private static final List<? extends  Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
 
+    private static final String SPLITTER = ",";
 
-    private String paramKey;
+    private String[] paramKeys;
     private Class type;
     private boolean allowNull;
 
-    public ParamResolver(String paramKey, Class type) {
-        this.paramKey = paramKey;
+    public ParamResolver(String paramKeysSplitByDot, Class type) {
+        this.paramKeys = paramKeysSplitByDot.split(SPLITTER);
         this.type = type;
         this.allowNull = isAllowNullFor(type);
     }
@@ -34,7 +35,14 @@ public class ParamResolver implements ParameterResolver {
 
     @Override
     public Object resolve(ContextParams params) {
-        return convert(params.get(paramKey));
+        Object value = null;
+        for (String paramKey : paramKeys) {
+            value = params.get(paramKey);
+            if (value != null) {
+                break;
+            }
+        }
+        return convert(value);
     }
 
     private Object convert(Object o) {
@@ -59,6 +67,6 @@ public class ParamResolver implements ParameterResolver {
     }
 
     private String getLocation() {
-        return String.format("@Param(\"%s\") ", paramKey);
+        return String.format("@Param(\"%s\") ", paramKeys);
     }
 }

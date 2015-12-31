@@ -20,7 +20,7 @@ public class RegistryCascadeFactory implements CascadeFactory {
 
     @Override
     public Cascade create() {
-        FieldInvoker fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
+        FieldInvoker fieldInvoker = new RegistryFieldInvoker(registry);
         final Reducer reducer = new SerialReducer(fieldInvoker);
 
         return new Cascade() {

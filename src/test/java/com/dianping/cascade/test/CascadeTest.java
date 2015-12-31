@@ -172,12 +172,18 @@ public class CascadeTest {
         userField.setParams(new HashMap(){{
             put("userId", id);
         }});
-        userField.setProps(Lists.newArrayList("id"));
+        userField.setProps(Lists.newArrayList("name"));
+
+        // 虽然返回的结果里面没有id了，但是children还是可以收到id
+        Field shopField = new Field();
+        shopField.setType("Shop");
+        userField.setChildren(Lists.newArrayList(shopField));
 
         Map ret = c.process(Lists.newArrayList(userField), null);
 
-        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), id);
-        Assert.assertNull(PropertyUtils.getProperty(ret, "user_load.name"));
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.name"), "Someone");
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.shop.id"), id);
+        Assert.assertNull(PropertyUtils.getProperty(ret, "user_load.id"));
 
     }
 
