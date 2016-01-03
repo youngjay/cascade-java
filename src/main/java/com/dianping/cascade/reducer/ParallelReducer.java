@@ -16,8 +16,6 @@ public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
     private ExecutorService executorService;
 
-    private static final String CASCADE_ERROR = "[Cascade Error] ";
-
     public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService) {
         this.fieldInvoker = fieldInvoker;
         this.executorService = executorService;
@@ -109,17 +107,11 @@ public class ParallelReducer implements Reducer {
 
         @Override
         public void run() {
-            Object result;
-
             ContextParams contextParams = parentContextParams.extend(field.getParams());
 
-            try {
-                result = fieldInvoker.invoke(field, contextParams);
-            } catch (Exception ex) {
-                result = CASCADE_ERROR + ex.getMessage();
-            }
+            Object result = fieldInvoker.invoke(field, contextParams);
 
-            if (field.getChildren().size() == 0 || result == null) {
+            if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
                 completeNotifier.emit(field.getComputedAs(), result);
             } else {
                 if (result instanceof List) {

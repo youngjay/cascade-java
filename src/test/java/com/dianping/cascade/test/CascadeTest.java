@@ -31,7 +31,8 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
-        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()), CascadeFactoryConfig.builder().threadCount(3).build()
+        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()),
+                CascadeFactoryConfig.builder().threadCount(3).build()
         );
         c = factory.create();
     }
@@ -234,8 +235,8 @@ public class CascadeTest {
 
         Map ret = c.process(Lists.newArrayList(userField), null);
 
-        Assert.assertEquals(((UserDTO) ret.get("user_add")).getId(), 2);
-        Assert.assertEquals(((UserDTO) ret.get("user_add")).getName(), "someone1");
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_add.id"), 2);
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_add.name"), "someone1");
     }
 
     @Test
@@ -250,8 +251,8 @@ public class CascadeTest {
 
         Map ret = c.process(Lists.newArrayList(userField), null);
 
-        Assert.assertEquals(((UserDTO) ret.get("user_add")).getId(), 2);
-        Assert.assertEquals(((UserDTO) ret.get("user_add")).getName(), "1");
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_add.id"), 2);
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_add.name"), "1");
     }
 
 

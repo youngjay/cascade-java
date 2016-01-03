@@ -15,6 +15,10 @@ public class RegistryFieldInvoker implements FieldInvoker {
 
     @Override
     public Object invoke(Field field, ContextParams contextParams) {
-        return registry.get(field.getType(), field.getCategory()).invoke(contextParams);
+        try {
+            return registry.get(field.getType(), field.getCategory()).invoke(contextParams);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -13,8 +13,6 @@ import java.util.Map;
  * Created by yangjie on 12/5/15.
  */
 public class SerialReducer implements Reducer {
-    private static final String CASCADE_ERROR = "[Cascade Error] ";
-
     private FieldInvoker fieldInvoker;
 
     public SerialReducer(FieldInvoker fieldInvoker) {
@@ -40,17 +38,11 @@ public class SerialReducer implements Reducer {
     @SuppressWarnings("unchecked")
     private Object reduceField(final Field field, ContextParams parentContextParams) {
 
-        final ContextParams contextParams = parentContextParams.extend(field.getParams());
+        ContextParams contextParams = parentContextParams.extend(field.getParams());
 
-        Object result;
+        Object result = fieldInvoker.invoke(field, contextParams);
 
-        try {
-            result = fieldInvoker.invoke(field, contextParams);
-        } catch (Exception ex) {
-            return CASCADE_ERROR + ex.getMessage();
-        }
-
-        if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
+        if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
             return result;
         }
 
@@ -76,7 +68,7 @@ public class SerialReducer implements Reducer {
     private Map processFieldsWithResults(Object result, List<Field> fields, ContextParams parentContextParams) {
         Map resultMap = Util.toMap(result);
         ContextParams contextParams = parentContextParams.extend(resultMap);
-        Map subResultMap = reduce(fields, contextParams);
+        Map subResultMap = reduceFields(fields, contextParams);
         resultMap.putAll(subResultMap);
         return resultMap;
     }

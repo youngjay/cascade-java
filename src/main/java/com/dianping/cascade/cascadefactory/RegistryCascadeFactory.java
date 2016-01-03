@@ -1,6 +1,7 @@
 package com.dianping.cascade.cascadefactory;
 
 import com.dianping.cascade.*;
+import com.dianping.cascade.invoker.field.ExceptionHandler;
 import com.dianping.cascade.invoker.field.PropsSupport;
 import com.dianping.cascade.invoker.field.RegistryFieldInvoker;
 import com.dianping.cascade.reducer.ParallelReducer;
@@ -21,7 +22,11 @@ public class RegistryCascadeFactory implements CascadeFactory {
 
     @Override
     public Cascade create() {
-        final FieldInvoker fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
+        final FieldInvoker fieldInvoker = new ExceptionHandler(
+                new PropsSupport(
+                    new RegistryFieldInvoker(registry)
+            )
+        );
 
         final Reducer reducer = config.getThreadCount() > 1 ?
                 new ParallelReducer(fieldInvoker, Executors.newFixedThreadPool(config.getThreadCount())) :
