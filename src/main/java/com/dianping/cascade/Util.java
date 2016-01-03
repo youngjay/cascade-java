@@ -35,10 +35,6 @@ public class Util {
     );
 
     public static boolean canNotHasChildren(Object o) {
-        if (o == null) {
-            return true;
-        }
-
-        return CAN_NOT_HAS_CHILDREN_CLASSES.indexOf(o.getClass()) != -1;
+        return o == null || CAN_NOT_HAS_CHILDREN_CLASSES.indexOf(o.getClass()) != -1;
     }
 }
