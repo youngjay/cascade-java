@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
+ * Created by yangjie on 03/01/16.
  */
 public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
