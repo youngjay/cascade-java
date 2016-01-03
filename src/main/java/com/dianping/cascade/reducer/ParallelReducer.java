@@ -29,7 +29,7 @@ public class ParallelReducer implements Reducer {
         void emit(Object key, Object value);
     }
 
-    private abstract class CompleteNotifierBase<T> implements CompleteNotifier {
+    private static abstract class CompleteNotifierBase<T> implements CompleteNotifier {
         protected T parentResults;
         private CompleteNotifier parent;
         private Object keyInParent;
@@ -53,7 +53,7 @@ public class ParallelReducer implements Reducer {
         protected abstract void setData(Object key, Object value);
     }
 
-    private class MapCompleteNotifier extends CompleteNotifierBase<Map> {
+    private static class MapCompleteNotifier extends CompleteNotifierBase<Map> {
         public MapCompleteNotifier(Map parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             super(parentResults, parent, keyInParent, remainCount);
         }
@@ -63,7 +63,7 @@ public class ParallelReducer implements Reducer {
         }
     }
 
-    private class ListCompleteNotifier extends CompleteNotifierBase<List> {
+    private static class ListCompleteNotifier extends CompleteNotifierBase<List> {
         public ListCompleteNotifier(List parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             super(parentResults, parent, keyInParent, remainCount);
         }

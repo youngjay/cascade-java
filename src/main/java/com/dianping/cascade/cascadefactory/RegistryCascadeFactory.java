@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -24,23 +23,15 @@ public class RegistryCascadeFactory implements CascadeFactory {
     public Cascade create() {
         final FieldInvoker fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
 
-        if (config.getThreadCount() > 1) {
-            // all cascades share one thread pool
-            final ExecutorService executorService = Executors.newFixedThreadPool(config.getThreadCount());
+        final Reducer reducer = config.getThreadCount() > 1 ?
+                new ParallelReducer(fieldInvoker, Executors.newFixedThreadPool(config.getThreadCount())) :
+                new SerialReducer(fieldInvoker);
 
-            return new Cascade() {
-                @Override
-                public Map process(List<Field> fields, Map contextParams) {
-                    return (new ParallelReducer(fieldInvoker, executorService)).reduce(fields, ContextParams.create(contextParams));
-                }
-            };
-        } else {
-            return new Cascade() {
-                @Override
-                public Map process(List<Field> fields, Map contextParams) {
-                    return (new SerialReducer(fieldInvoker)).reduce(fields, ContextParams.create(contextParams));
-                }
-            };
-        }
+        return new Cascade() {
+            @Override
+            public Map process(List<Field> fields, Map contextParams) {
+                return reducer.reduce(fields, ContextParams.create(contextParams));
+            }
+        };
     }
 }
