@@ -12,11 +12,6 @@ public class Shop {
     }
 
     public ShopDTO byUser(@Param("userId,id") int userId) {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return new ShopDTO(2, "shop", userId);
     }
 

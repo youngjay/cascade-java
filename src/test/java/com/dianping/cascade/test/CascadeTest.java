@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.dianping.cascade.*;
 import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Cooperation;
+import com.dianping.cascade.test.cascade.Delay;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
 import com.dianping.cascade.test.model.UserDTO;
@@ -31,7 +32,7 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
-        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop()));
+        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()), CascadeFactoryConfig.DEFAULT);
         c = factory.create();
     }
 
@@ -201,29 +202,6 @@ public class CascadeTest {
 
 
         Assert.assertTrue(((String) PropertyUtils.getProperty(ret, "user_load")).startsWith("[Cascade Error]"));
-    }
-
-    @Test
-    public void parallelPerformance() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        Field userField = new Field();
-        userField.setType("User");
-        userField.setCategory("many");
-        userField.setParams(new HashMap() {{
-            put("count", 100);
-        }});
-
-        Field shopField1 = new Field();
-        shopField1.setType("Shop");
-        shopField1.setCategory("byUser");
-
-        userField.setChildren(Lists.newArrayList(shopField1));
-
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-        Map ret = c.process(Lists.newArrayList(userField), null);
-        System.out.println(JSON.toJSONString(ret));
-        System.out.println("time elapsed:" + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " ms");
-
-        Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
     }
 
     @Test

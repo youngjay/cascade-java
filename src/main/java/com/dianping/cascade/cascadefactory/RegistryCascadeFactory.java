@@ -5,6 +5,7 @@ import com.dianping.cascade.invoker.field.PropsSupport;
 import com.dianping.cascade.invoker.field.RegistryFieldInvoker;
 import com.dianping.cascade.reducer.ParallelReducer;
 import com.dianping.cascade.reducer.SerialReducer;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -14,25 +15,32 @@ import java.util.concurrent.Executors;
 /**
  * Created by yangjie on 12/15/15.
  */
+@AllArgsConstructor
 public class RegistryCascadeFactory implements CascadeFactory {
     private Registry registry;
-    private FieldInvoker fieldInvoker;
-    private ExecutorService executorService = Executors.newFixedThreadPool(100);
-
-    public RegistryCascadeFactory(Registry registry) {
-        this.registry = registry;
-        fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
-    }
+    private CascadeFactoryConfig config;
 
     @Override
     public Cascade create() {
-        return new Cascade() {
-            @Override
-            public Map process(List<Field> fields, Map contextParams) {
-                final Reducer reducer = new ParallelReducer(fieldInvoker, executorService);
-//                final Reducer reducer = new SerialReducer(fieldInvoker);
-                return reducer.reduce(fields, ContextParams.create(contextParams));
-            }
-        };
+        final FieldInvoker fieldInvoker = new PropsSupport(new RegistryFieldInvoker(registry));
+
+        if (config.getThreadCount() > 1) {
+            // all cascades share one thread pool
+            final ExecutorService executorService = Executors.newFixedThreadPool(config.getThreadCount());
+
+            return new Cascade() {
+                @Override
+                public Map process(List<Field> fields, Map contextParams) {
+                    return (new ParallelReducer(fieldInvoker, executorService)).reduce(fields, ContextParams.create(contextParams));
+                }
+            };
+        } else {
+            return new Cascade() {
+                @Override
+                public Map process(List<Field> fields, Map contextParams) {
+                    return (new SerialReducer(fieldInvoker)).reduce(fields, ContextParams.create(contextParams));
+                }
+            };
+        }
     }
 }

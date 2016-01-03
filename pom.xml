@@ -7,9 +7,8 @@
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
     <name>cascade</name>
-    <version>3.0</version>
+    <version>4.0.0</version>
     <packaging>jar</packaging>
-
 
     <parent>
         <artifactId>parent</artifactId>

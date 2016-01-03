@@ -11,8 +11,10 @@ import org.springframework.context.ApplicationContextAware;
 public class SpringContextCascadeFactory implements ApplicationContextAware, CascadeFactory {
     private BeansCascadeFactory beansCascadeFactory;
 
+    private CascadeFactoryConfig config = CascadeFactoryConfig.DEFAULT;
+
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        beansCascadeFactory = new BeansCascadeFactory(applicationContext.getBeansOfType(CascadeAware.class).values());
+        beansCascadeFactory = new BeansCascadeFactory(applicationContext.getBeansOfType(CascadeAware.class).values(), config);
     }
 
     @Override
