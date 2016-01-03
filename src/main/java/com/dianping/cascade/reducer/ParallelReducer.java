@@ -3,7 +3,6 @@ package com.dianping.cascade.reducer;
 import com.dianping.cascade.*;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -28,17 +27,20 @@ public class ParallelReducer implements Reducer {
         void emit(Object key, Object value);
     }
 
-    private static abstract class CompleteNotifierBase<T> implements CompleteNotifier {
+    private static abstract class CollectionCompleteNotifier<T> implements CompleteNotifier {
         protected T parentResults;
         private CompleteNotifier parent;
         private Object keyInParent;
         private AtomicInteger remainCount;
 
-        protected CompleteNotifierBase(T parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
+        protected CollectionCompleteNotifier(T parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             this.parentResults = parentResults;
             this.parent = parent;
             this.keyInParent = keyInParent;
             this.remainCount = new AtomicInteger(remainCount);
+            if (remainCount == 0) {
+                parent.emit(keyInParent, parentResults);
+            }
         }
 
         @Override
@@ -52,7 +54,7 @@ public class ParallelReducer implements Reducer {
         protected abstract void setData(Object key, Object value);
     }
 
-    private static class MapCompleteNotifier extends CompleteNotifierBase<Map> {
+    private static class MapCompleteNotifier extends CollectionCompleteNotifier<Map> {
         public MapCompleteNotifier(Map parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             super(parentResults, parent, keyInParent, remainCount);
         }
@@ -62,7 +64,7 @@ public class ParallelReducer implements Reducer {
         }
     }
 
-    private static class ListCompleteNotifier extends CompleteNotifierBase<List> {
+    private static class ListCompleteNotifier extends CollectionCompleteNotifier<List> {
         public ListCompleteNotifier(List parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             super(parentResults, parent, keyInParent, remainCount);
         }
@@ -117,7 +119,7 @@ public class ParallelReducer implements Reducer {
                 result = CASCADE_ERROR + ex.getMessage();
             }
 
-            if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
+            if (field.getChildren().size() == 0 || result == null) {
                 completeNotifier.emit(field.getComputedAs(), result);
             } else {
                 if (result instanceof List) {

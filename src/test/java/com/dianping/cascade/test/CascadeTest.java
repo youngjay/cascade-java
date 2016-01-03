@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -93,6 +94,24 @@ public class CascadeTest {
         Map ret = c.process(Lists.newArrayList(field), null);
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_runtimeException"), "[Cascade Error] [User.runtimeException] error");
+    }
+
+    @Test
+    public void testSize0List()  throws  Exception{
+        Field field = new Field();
+        field.setType("User");
+        field.setCategory("size0");
+//
+        Field shopField = new Field();
+        shopField.setType("Shop");
+        shopField.setCategory("byUser");
+
+        field.setChildren(Lists.newArrayList(shopField));
+
+        Map ret = c.process(Lists.newArrayList(field), null);
+
+        Assert.assertEquals((List) PropertyUtils.getProperty(ret, "user_size0"), Lists.newArrayList());
+
     }
 
     @Test

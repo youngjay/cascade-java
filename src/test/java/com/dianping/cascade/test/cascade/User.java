@@ -52,4 +52,8 @@ public class User {
         System.out.println("cachedload called:" + id);
         return new UserDTO(id, "Someone");
     }
+
+    public List size0() {
+        return Lists.newArrayList();
+    }
 }
