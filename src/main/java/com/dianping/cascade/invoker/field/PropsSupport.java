@@ -13,9 +13,6 @@ import java.util.Map;
 /**
  * Created by yangjie on 12/12/15.
  */
-@Deprecated
-// 用这个invoker没办法做到，在传给children全部属性的同时，返回的数据里面只包含指定的属性
-// 所以现在的做法是在reducer里面做
 @AllArgsConstructor
 public class PropsSupport implements FieldInvoker {
     private FieldInvoker fieldInvoker;

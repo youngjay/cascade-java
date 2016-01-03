@@ -13,13 +13,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by yangjie on 12/5/15.
  *
- * WRONG IMPLEMENT
  */
 public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
     private ExecutorService executorService;
+
     private Map<Object, CompleteNotifier> completeNotifierMap = Maps.newConcurrentMap();
 
     private final Object lock = new Object();
@@ -28,9 +27,9 @@ public class ParallelReducer implements Reducer {
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
 
-    public ParallelReducer(FieldInvoker fieldInvoker) {
+    public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService) {
         this.fieldInvoker = fieldInvoker;
-        this.executorService = Executors.newFixedThreadPool(100);
+        this.executorService = executorService;
     }
 
     private interface CompleteNotifier {
@@ -114,7 +113,6 @@ public class ParallelReducer implements Reducer {
         private Field field;
         private ContextParams parentContextParams;
 
-
         @Override
         public void run() {
             Object result;
@@ -136,7 +134,7 @@ public class ParallelReducer implements Reducer {
                 if (result instanceof List) {
                     List resultList = (List) result;
                     completeNotifierMap.put(path, new ListCompleteNotifier(resultList, parentPath, field.getComputedAs(), resultList.size()));
-                    executorService.execute(new ItemsRunner(resultList, path, field.getChildren(), contextParams));
+                    executorService.execute(new ListResultsRunner(resultList, path, field.getChildren(), contextParams));
                 } else {
                     Map resultMap = Util.toMap(result);
                     completeNotifierMap.put(path, new MapCompleteNotifier(resultMap, parentPath, field.getComputedAs(), field.getChildren().size()));
@@ -162,7 +160,7 @@ public class ParallelReducer implements Reducer {
     }
 
     @AllArgsConstructor
-    private class ItemsRunner implements Runnable {
+    private class ListResultsRunner implements Runnable {
         List parentResults;
         private List parentPath;
         private List<Field> fields;
@@ -202,6 +200,5 @@ public class ParallelReducer implements Reducer {
         }
 
         return root.getResults();
-
     }
 }
