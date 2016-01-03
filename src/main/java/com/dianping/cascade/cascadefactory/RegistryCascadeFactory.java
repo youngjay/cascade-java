@@ -3,6 +3,7 @@ package com.dianping.cascade.cascadefactory;
 import com.dianping.cascade.*;
 import com.dianping.cascade.invoker.field.PropsSupport;
 import com.dianping.cascade.invoker.field.RegistryFieldInvoker;
+import com.dianping.cascade.reducer.ParallelReducer;
 import com.dianping.cascade.reducer.SerialReducer;
 
 import java.util.List;
@@ -20,12 +21,13 @@ public class RegistryCascadeFactory implements CascadeFactory {
 
     @Override
     public Cascade create() {
-        FieldInvoker fieldInvoker = new RegistryFieldInvoker(registry);
-        final Reducer reducer = new SerialReducer(fieldInvoker);
-
         return new Cascade() {
             @Override
             public Map process(List<Field> fields, Map contextParams) {
+
+                FieldInvoker fieldInvoker = new RegistryFieldInvoker(registry);
+//                final Reducer reducer = new ParallelReducer(fieldInvoker);
+                final Reducer reducer = new SerialReducer(fieldInvoker);
                 return reducer.reduce(fields, ContextParams.create(contextParams));
             }
         };

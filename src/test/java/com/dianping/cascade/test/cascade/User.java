@@ -34,8 +34,7 @@ public class User {
         throw new RuntimeException("error");
     }
 
-    public List<UserDTO> many() {
-        int count = 20;
+    public List<UserDTO> many(@Param("count") int count) {
         List<UserDTO> ret = Lists.newArrayListWithExpectedSize(count);
         for (int i = 0; i < count; i++) {
             ret.add(new UserDTO(i, "Someone"));

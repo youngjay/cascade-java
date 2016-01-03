@@ -11,8 +11,14 @@ public class Shop {
         return new ShopDTO(id, "shopxxx", 0);
     }
 
-    public ShopDTO byUser(@Param("userId") int userId) {
-        return new ShopDTO(1, "shop", userId);
+    public ShopDTO byUser(@Param("userId,id") int userId) {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(1111);
+        return new ShopDTO(2, "shop", userId);
     }
 
 

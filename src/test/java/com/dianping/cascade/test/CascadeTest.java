@@ -6,6 +6,7 @@ import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
 import com.dianping.cascade.test.model.UserDTO;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.testng.Assert;
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangjie on 9/23/15.
@@ -210,14 +212,20 @@ public class CascadeTest {
         Field userField = new Field();
         userField.setType("User");
         userField.setCategory("many");
+        userField.setParams(new HashMap() {{
+            put("count", 100);
+        }});
 
         Field shopField1 = new Field();
-        shopField1.setType("shop");
+        shopField1.setType("Shop");
         shopField1.setCategory("byUser");
 
         userField.setChildren(Lists.newArrayList(shopField1));
 
+        final Stopwatch stopwatch = Stopwatch.createStarted();
         Map ret = c.process(Lists.newArrayList(userField), null);
+        System.out.println("time elapsed:" + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
 
         Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
     }

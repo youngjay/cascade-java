@@ -1,19 +1,16 @@
 package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.AllArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by yangjie on 12/5/15.
@@ -22,122 +19,189 @@ import java.util.concurrent.Future;
  */
 public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
-    ExecutorService executorService;
+    private ExecutorService executorService;
+    private Map<Object, CompleteNotifier> completeNotifierMap = Maps.newConcurrentMap();
+
+    private final Object lock = new Object();
+    private volatile boolean isComplete = false;
 
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
 
     public ParallelReducer(FieldInvoker fieldInvoker) {
         this.fieldInvoker = fieldInvoker;
-        this.executorService = Executors.newFixedThreadPool(30);
+        this.executorService = Executors.newFixedThreadPool(100);
     }
+
+    private interface CompleteNotifier {
+        void emit(Object key, Object value);
+    }
+
+    private abstract class CompleteNotifierBase<T> implements CompleteNotifier {
+        protected T parentResults;
+        private List parentPath;
+        private Object keyInParent;
+        private AtomicInteger remainCount;
+
+        protected CompleteNotifierBase(T parentResults, List parentPath, Object keyInParent, int remainCount) {
+            this.parentResults = parentResults;
+            this.parentPath = parentPath;
+            this.keyInParent = keyInParent;
+            this.remainCount = new AtomicInteger(remainCount);
+        }
+
+        @Override
+        public void emit(Object key, Object value) {
+            setData(key, value);
+            if (remainCount.decrementAndGet() == 0) {
+                CompleteNotifier parent = completeNotifierMap.get(parentPath);
+                parent.emit(keyInParent, parentResults);
+            }
+        }
+
+        protected abstract void setData(Object key, Object value);
+    }
+
+    private class MapCompleteNotifier extends CompleteNotifierBase<Map> {
+        public MapCompleteNotifier(Map parentResults, List parentPath, Object keyInParent, int remainCount) {
+            super(parentResults, parentPath, keyInParent, remainCount);
+        }
+
+        protected void setData(Object key, Object value) {
+            parentResults.put(key, value);
+        }
+    }
+
+    private class ListCompleteNotifier extends CompleteNotifierBase<List> {
+        public ListCompleteNotifier(List parentResults, List parentPath, Object keyInParent, int remainCount) {
+            super(parentResults, parentPath, keyInParent, remainCount);
+        }
+
+        protected void setData(Object key, Object value) {
+            parentResults.set((Integer) key, value);
+        }
+    }
+
+    private class RootCompleteNotifier implements CompleteNotifier {
+        private Map results;
+        private AtomicInteger remainCount;
+
+        public RootCompleteNotifier(int remainCount) {
+            this.remainCount = new AtomicInteger(remainCount);
+            results = Maps.newHashMapWithExpectedSize(remainCount);
+        }
+
+        @Override
+        public void emit(Object key, Object value) {
+            results.put(key, value);
+            if (remainCount.decrementAndGet() == 0) {
+                synchronized (lock) {
+                    isComplete = true;
+                    lock.notifyAll();
+                }
+            }
+        }
+
+        public Map getResults() {
+            return results;
+        }
+    }
+
+
+    @AllArgsConstructor
+    private class FieldRunner implements Runnable {
+        private List parentPath;
+        private Field field;
+        private ContextParams parentContextParams;
+
+
+        @Override
+        public void run() {
+            Object result;
+
+            ContextParams contextParams = parentContextParams.extend(field.getParams());
+
+            try {
+                result = fieldInvoker.invoke(field, contextParams);
+            } catch (Exception ex) {
+                result = CASCADE_ERROR + ex.getMessage();
+            }
+
+            if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
+                completeNotifierMap.get(parentPath).emit(field.getComputedAs(), result);
+            } else {
+                List path = Lists.newArrayList(parentPath);
+                path.add(field.getComputedAs());
+
+                if (result instanceof List) {
+                    List resultList = (List) result;
+                    completeNotifierMap.put(path, new ListCompleteNotifier(resultList, parentPath, field.getComputedAs(), resultList.size()));
+                    executorService.execute(new ItemsRunner(resultList, path, field.getChildren(), contextParams));
+                } else {
+                    Map resultMap = Util.toMap(result);
+                    completeNotifierMap.put(path, new MapCompleteNotifier(resultMap, parentPath, field.getComputedAs(), field.getChildren().size()));
+                    executorService.execute(new FieldsRunner(path, field.getChildren(), contextParams.extend(resultMap)));
+                }
+            }
+
+        }
+    }
+
+    @AllArgsConstructor
+    private class FieldsRunner implements Runnable {
+        private List parentPath;
+        private List<Field> fields;
+        private ContextParams parentContextParams;
+
+        @Override
+        public void run() {
+            for (Field field : fields) {
+                executorService.execute(new FieldRunner(parentPath, field, parentContextParams));
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    private class ItemsRunner implements Runnable {
+        List parentResults;
+        private List parentPath;
+        private List<Field> fields;
+        private ContextParams parentContextParams;
+
+        @Override
+        public void run() {
+            int index = 0;
+            for (Object o : parentResults) {
+                List path = Lists.newArrayList(parentPath);
+                path.add(index);
+                Map parentResultsMap = Util.toMap(o);
+                completeNotifierMap.put(path, new MapCompleteNotifier(parentResultsMap, parentPath, index, fields.size()));
+                executorService.execute(new FieldsRunner(path, fields, parentContextParams.extend(parentResultsMap)));
+                ++index;
+            }
+        }
+    }
+
 
     @Override
-    public Map reduce(List<Field> fields, final ContextParams contextParams) {
+    public Map reduce(List<Field> fields, ContextParams contextParams) {
+        List key = Lists.newArrayList();
+        RootCompleteNotifier root = new RootCompleteNotifier(fields.size());
 
-        Collection<Callable<Object>> callables = Collections2.transform(fields, new Function<Field, Callable<Object>>() {
-            @Override
-            public Callable<Object> apply(final Field field) {
-                return new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return reduceField(field, contextParams);
-                    }
-                };
-            }
-        });
+        completeNotifierMap.put(key, root);
+        executorService.execute(new FieldsRunner(key, fields, contextParams));
 
-        List<Future<Object>> futures;
-
-        try {
-            futures = executorService.invokeAll(callables);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        List<Object> results = Lists.transform(futures, new Function<Future<Object>, Object>() {
-            @Override
-            public Object apply(Future<Object> input) {
+        synchronized(lock){
+            while (!isComplete){
                 try {
-                    return input.get();
-                } catch (Exception ex) {
-                    return CASCADE_ERROR + ex.getMessage();
-                }
-            }
-        });
-
-        int i = 0;
-        Map ret = Maps.newHashMap();
-        for (Field field : fields) {
-            ret.put(field.getComputedAs(), results.get(i));
-            i++;
-        }
-
-        return ret;
-    }
-
-
-
-
-    private Object reduceField(final Field field, ContextParams parentContextParams) {
-
-        final ContextParams contextParams = parentContextParams.extend(field.getParams());
-
-        Object result;
-
-        try {
-            result = fieldInvoker.invoke(field, contextParams);
-        } catch (Exception ex) {
-            return CASCADE_ERROR + ex.getMessage();
-        }
-
-        if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
-            return result;
-        }
-
-        if (result instanceof List) {
-                List<Callable<Map>> callables = Lists.transform((List<Object>) result, new Function<Object, Callable<Map>>() {
-                    @Override
-                    public Callable<Map> apply(final Object input) {
-                        return new Callable<Map>() {
-                            @Override
-                            public Map call() throws Exception {
-                                return processFieldsWithResults(input, field.getChildren(), contextParams);
-                            }
-                        };
-                    }
-                });
-
-                List<Future<Map>> futures;
-
-                try {
-                    futures = executorService.invokeAll(callables);
+                    lock.wait();
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
                 }
-
-                return Lists.transform(futures, new Function<Future<Map>, Object>() {
-                    @Override
-                    public Object apply(Future<Map> input) {
-                        try {
-                            return input.get();
-                        } catch (Exception ex) {
-                            return CASCADE_ERROR + ex.getMessage();
-                        }
-                    }
-                });
-        } else {
-            return processFieldsWithResults(result, field.getChildren(), contextParams);
+            }
         }
 
-    }
+        return root.getResults();
 
-    @SuppressWarnings("unchecked")
-    private Map processFieldsWithResults(Object result, List<Field> fields, ContextParams parentContextParams) {
-        Map resultMap = Util.toMap(result);
-        ContextParams contextParams = parentContextParams.extend(resultMap);
-        Map subResultMap = reduce(fields, contextParams);
-        resultMap.putAll(subResultMap);
-        return resultMap;
     }
 }
