@@ -1,14 +1,14 @@
 package com.dianping.cascade.test;
 
-import com.alibaba.fastjson.JSON;
-import com.dianping.cascade.*;
+import com.dianping.cascade.Cascade;
+import com.dianping.cascade.CascadeFactoryConfig;
+import com.dianping.cascade.Field;
 import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Delay;
 import com.dianping.cascade.test.cascade.Shop;
 import com.dianping.cascade.test.cascade.User;
 import com.dianping.cascade.test.model.UserDTO;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.testng.Assert;
@@ -18,9 +18,7 @@ import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangjie on 9/23/15.
@@ -32,7 +30,8 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
-        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()), CascadeFactoryConfig.DEFAULT);
+        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()), CascadeFactoryConfig.builder().threadCount(3).build()
+        );
         c = factory.create();
     }
 
@@ -159,7 +158,7 @@ public class CascadeTest {
         Field field = new Field();
         field.setType("User");
         field.setCategory("load");
-        field.setParams(new HashMap(){{
+        field.setParams(new HashMap() {{
             put("userId", Lists.newArrayList());
         }});
         Map ret = c.process(Lists.newArrayList(field), null);
@@ -192,7 +191,7 @@ public class CascadeTest {
         final Integer id = 99;
         userField.setType("User");
         userField.setCategory("load");
-        userField.setParams(new HashMap(){{
+        userField.setParams(new HashMap() {{
             put("userId", id);
         }});
         userField.setProps(Lists.newArrayList("foo"));
