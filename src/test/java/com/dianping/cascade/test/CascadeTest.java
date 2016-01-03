@@ -1,5 +1,6 @@
 package com.dianping.cascade.test;
 
+import com.alibaba.fastjson.JSON;
 import com.dianping.cascade.*;
 import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Cooperation;
@@ -219,8 +220,8 @@ public class CascadeTest {
 
         final Stopwatch stopwatch = Stopwatch.createStarted();
         Map ret = c.process(Lists.newArrayList(userField), null);
-        System.out.println("time elapsed:" + stopwatch.elapsed(TimeUnit.MILLISECONDS));
-
+        System.out.println(JSON.toJSONString(ret));
+        System.out.println("time elapsed:" + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " ms");
 
         Assert.assertNotEquals(((List) PropertyUtils.getProperty(ret, "user_many")).size(), 0);
     }

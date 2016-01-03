@@ -26,7 +26,6 @@ public class ParallelReducer implements Reducer {
 
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
-
     public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService) {
         this.fieldInvoker = fieldInvoker;
         this.executorService = executorService;

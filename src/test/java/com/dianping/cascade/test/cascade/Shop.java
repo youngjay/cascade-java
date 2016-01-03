@@ -17,7 +17,6 @@ public class Shop {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println(1111);
         return new ShopDTO(2, "shop", userId);
     }
 
