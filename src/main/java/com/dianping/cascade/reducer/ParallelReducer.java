@@ -1,7 +1,6 @@
 package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
@@ -9,7 +8,7 @@ import org.apache.commons.collections.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -18,11 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
     private ExecutorService executorService;
-
-    private Map<Object, CompleteNotifier> completeNotifierMap = Maps.newConcurrentMap();
-
-    private final Object lock = new Object();
-    private volatile boolean isComplete = false;
 
     private static final String CASCADE_ERROR = "[Cascade Error] ";
 
@@ -37,13 +31,13 @@ public class ParallelReducer implements Reducer {
 
     private abstract class CompleteNotifierBase<T> implements CompleteNotifier {
         protected T parentResults;
-        private List parentPath;
+        private CompleteNotifier parent;
         private Object keyInParent;
         private AtomicInteger remainCount;
 
-        protected CompleteNotifierBase(T parentResults, List parentPath, Object keyInParent, int remainCount) {
+        protected CompleteNotifierBase(T parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
             this.parentResults = parentResults;
-            this.parentPath = parentPath;
+            this.parent = parent;
             this.keyInParent = keyInParent;
             this.remainCount = new AtomicInteger(remainCount);
         }
@@ -52,7 +46,6 @@ public class ParallelReducer implements Reducer {
         public void emit(Object key, Object value) {
             setData(key, value);
             if (remainCount.decrementAndGet() == 0) {
-                CompleteNotifier parent = completeNotifierMap.get(parentPath);
                 parent.emit(keyInParent, parentResults);
             }
         }
@@ -61,8 +54,8 @@ public class ParallelReducer implements Reducer {
     }
 
     private class MapCompleteNotifier extends CompleteNotifierBase<Map> {
-        public MapCompleteNotifier(Map parentResults, List parentPath, Object keyInParent, int remainCount) {
-            super(parentResults, parentPath, keyInParent, remainCount);
+        public MapCompleteNotifier(Map parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
+            super(parentResults, parent, keyInParent, remainCount);
         }
 
         protected void setData(Object key, Object value) {
@@ -71,8 +64,8 @@ public class ParallelReducer implements Reducer {
     }
 
     private class ListCompleteNotifier extends CompleteNotifierBase<List> {
-        public ListCompleteNotifier(List parentResults, List parentPath, Object keyInParent, int remainCount) {
-            super(parentResults, parentPath, keyInParent, remainCount);
+        public ListCompleteNotifier(List parentResults, CompleteNotifier parent, Object keyInParent, int remainCount) {
+            super(parentResults, parent, keyInParent, remainCount);
         }
 
         protected void setData(Object key, Object value) {
@@ -80,12 +73,14 @@ public class ParallelReducer implements Reducer {
         }
     }
 
-    private class RootCompleteNotifier implements CompleteNotifier {
+    private static class RootCompleteNotifier implements CompleteNotifier {
         private Map results;
+        private Object lock;
         private AtomicInteger remainCount;
 
-        public RootCompleteNotifier(int remainCount) {
+        public RootCompleteNotifier(int remainCount, Object lock) {
             this.remainCount = new AtomicInteger(remainCount);
+            this.lock = lock;
             results = Maps.newHashMapWithExpectedSize(remainCount);
         }
 
@@ -94,7 +89,6 @@ public class ParallelReducer implements Reducer {
             results.put(key, value);
             if (remainCount.decrementAndGet() == 0) {
                 synchronized (lock) {
-                    isComplete = true;
                     lock.notifyAll();
                 }
             }
@@ -108,7 +102,7 @@ public class ParallelReducer implements Reducer {
 
     @AllArgsConstructor
     private class FieldRunner implements Runnable {
-        private List parentPath;
+        private CompleteNotifier parent;
         private Field field;
         private ContextParams parentContextParams;
 
@@ -125,19 +119,16 @@ public class ParallelReducer implements Reducer {
             }
 
             if (CollectionUtils.isEmpty(field.getChildren()) || result == null) {
-                completeNotifierMap.get(parentPath).emit(field.getComputedAs(), result);
+                parent.emit(field.getComputedAs(), result);
             } else {
-                List path = Lists.newArrayList(parentPath);
-                path.add(field.getComputedAs());
-
                 if (result instanceof List) {
                     List resultList = (List) result;
-                    completeNotifierMap.put(path, new ListCompleteNotifier(resultList, parentPath, field.getComputedAs(), resultList.size()));
-                    executorService.execute(new ListResultsRunner(resultList, path, field.getChildren(), contextParams));
+                    CompleteNotifier list =  new ListCompleteNotifier(resultList, parent, field.getComputedAs(), resultList.size());
+                    executorService.execute(new ListResultsRunner(resultList, list, field.getChildren(), contextParams));
                 } else {
                     Map resultMap = Util.toMap(result);
-                    completeNotifierMap.put(path, new MapCompleteNotifier(resultMap, parentPath, field.getComputedAs(), field.getChildren().size()));
-                    executorService.execute(new FieldsRunner(path, field.getChildren(), contextParams.extend(resultMap)));
+                    CompleteNotifier map = new MapCompleteNotifier(resultMap, parent, field.getComputedAs(), field.getChildren().size());
+                    executorService.execute(new FieldsRunner(map, field.getChildren(), contextParams.extend(resultMap)));
                 }
             }
 
@@ -146,22 +137,22 @@ public class ParallelReducer implements Reducer {
 
     @AllArgsConstructor
     private class FieldsRunner implements Runnable {
-        private List parentPath;
+        private CompleteNotifier parent;
         private List<Field> fields;
         private ContextParams parentContextParams;
 
         @Override
         public void run() {
             for (Field field : fields) {
-                executorService.execute(new FieldRunner(parentPath, field, parentContextParams));
+                executorService.execute(new FieldRunner(parent, field, parentContextParams));
             }
         }
     }
 
     @AllArgsConstructor
     private class ListResultsRunner implements Runnable {
-        List parentResults;
-        private List parentPath;
+        private List parentResults;
+        private CompleteNotifier parent;
         private List<Field> fields;
         private ContextParams parentContextParams;
 
@@ -169,11 +160,9 @@ public class ParallelReducer implements Reducer {
         public void run() {
             int index = 0;
             for (Object o : parentResults) {
-                List path = Lists.newArrayList(parentPath);
-                path.add(index);
                 Map parentResultsMap = Util.toMap(o);
-                completeNotifierMap.put(path, new MapCompleteNotifier(parentResultsMap, parentPath, index, fields.size()));
-                executorService.execute(new FieldsRunner(path, fields, parentContextParams.extend(parentResultsMap)));
+                CompleteNotifier map = new  MapCompleteNotifier(parentResultsMap, parent, index, fields.size());
+                executorService.execute(new FieldsRunner(map, fields, parentContextParams.extend(parentResultsMap)));
                 ++index;
             }
         }
@@ -182,19 +171,17 @@ public class ParallelReducer implements Reducer {
 
     @Override
     public Map reduce(List<Field> fields, ContextParams contextParams) {
-        List key = Lists.newArrayList();
-        RootCompleteNotifier root = new RootCompleteNotifier(fields.size());
 
-        completeNotifierMap.put(key, root);
-        executorService.execute(new FieldsRunner(key, fields, contextParams));
+        Object lock = new Object();
+
+        RootCompleteNotifier root = new RootCompleteNotifier(fields.size(), lock);
+        executorService.execute(new FieldsRunner(root, fields, contextParams));
 
         synchronized(lock){
-            while (!isComplete){
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
