@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +47,8 @@ public class SerialReducer implements Reducer {
             return result;
         }
 
-        if (result instanceof List) {
-            return reduceResults((List) result, field.getChildren(), contextParams);
+        if (result instanceof Collection) {
+            return reduceResults(Lists.newArrayList((Collection) result), field.getChildren(), contextParams);
         } else {
             return processFieldsWithResults(result, field.getChildren(), contextParams);
         }

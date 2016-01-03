@@ -1,9 +1,11 @@
 package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -114,8 +116,8 @@ public class ParallelReducer implements Reducer {
             if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
                 completeNotifier.emit(field.getComputedAs(), result);
             } else {
-                if (result instanceof List) {
-                    List resultList = (List) result;
+                if (result instanceof Collection) {
+                    List resultList = Lists.newArrayList((Collection) result);
                     executorService.execute(new ListResultsRunner(resultList, new ListCompleteNotifier(resultList, completeNotifier, field.getComputedAs(), resultList.size()), field.getChildren(), contextParams));
                 } else {
                     Map resultMap = Util.toMap(result);
