@@ -61,16 +61,4 @@ public class RegistryCascadeFactory implements CascadeFactory {
             }
         };
     }
-
-//    private ThreadPoolExecutor createThreadPoolExecutor(int threadCount) {
-//        return new ThreadPoolExecutor(
-//            threadCount,
-//            threadCount,
-//            0L,
-//            TimeUnit.MILLISECONDS,
-//            new LinkedBlockingQueue<Runnable>(threadCount), // 额外接受1倍的task，拍脑袋定的，可以优化
-//            new ThreadFactoryBuilder().setNameFormat("cascade-%d").build(),
-//            new ThreadPoolExecutor.CallerRunsPolicy()
-//        );
-//    }
 }
