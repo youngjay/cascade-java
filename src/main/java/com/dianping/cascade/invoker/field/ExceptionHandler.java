@@ -17,7 +17,7 @@ public class ExceptionHandler implements FieldInvoker {
     public Object invoke(Field field, ContextParams contextParams) {
         try {
             return fieldInvoker.invoke(field, contextParams);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             Throwable cause = getCause(ex);
 
             if (cause instanceof BusinessException) {

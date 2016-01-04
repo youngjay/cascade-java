@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -76,12 +77,12 @@ public class ParallelReducer implements Reducer {
 
     private static class RootCompleteNotifier implements CompleteNotifier {
         private Map results;
-        private Object lock;
+        private AtomicBoolean isComplete;
         private AtomicInteger remainCount;
 
-        public RootCompleteNotifier(int remainCount, Object lock) {
+        public RootCompleteNotifier(int remainCount, AtomicBoolean isComplete) {
             this.remainCount = new AtomicInteger(remainCount);
-            this.lock = lock;
+            this.isComplete = isComplete;
             results = Maps.newHashMapWithExpectedSize(remainCount);
         }
 
@@ -89,8 +90,9 @@ public class ParallelReducer implements Reducer {
         public void emit(Object key, Object value) {
             results.put(key, value);
             if (remainCount.decrementAndGet() == 0) {
-                synchronized (lock) {
-                    lock.notifyAll();
+                synchronized (isComplete) {
+                    isComplete.set(true);
+                    isComplete.notifyAll();
                 }
             }
         }
@@ -164,16 +166,18 @@ public class ParallelReducer implements Reducer {
     @Override
     public Map reduce(List<Field> fields, ContextParams contextParams) {
 
-        Object lock = new Object();
+        AtomicBoolean isComplete = new AtomicBoolean(false);
 
-        RootCompleteNotifier root = new RootCompleteNotifier(fields.size(), lock);
+        RootCompleteNotifier root = new RootCompleteNotifier(fields.size(), isComplete);
         executorService.execute(new FieldsRunner(root, fields, contextParams));
 
-        synchronized(lock){
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        synchronized(isComplete){
+            while (!isComplete.get()) {
+                try {
+                    isComplete.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
