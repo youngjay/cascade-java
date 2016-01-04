@@ -4,24 +4,31 @@ import com.dianping.cascade.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
+import lombok.extern.apachecommons.CommonsLog;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by yangjie on 03/01/16.
  */
+@CommonsLog
 public class ParallelReducer implements Reducer {
     private FieldInvoker fieldInvoker;
     private ExecutorService executorService;
+    private BlockingQueue<Runnable> taskQueue;
 
-    public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService) {
+    public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService, BlockingQueue<Runnable> taskQueue) {
         this.fieldInvoker = fieldInvoker;
         this.executorService = executorService;
+        this.taskQueue = taskQueue;
     }
 
     private interface CompleteNotifier {
@@ -77,24 +84,17 @@ public class ParallelReducer implements Reducer {
 
     private static class RootCompleteNotifier implements CompleteNotifier {
         private Map results;
-        private AtomicBoolean isComplete;
         private AtomicInteger remainCount;
 
-        public RootCompleteNotifier(int remainCount, AtomicBoolean isComplete) {
+        public RootCompleteNotifier(int remainCount) {
             this.remainCount = new AtomicInteger(remainCount);
-            this.isComplete = isComplete;
             results = Maps.newHashMapWithExpectedSize(remainCount);
         }
 
         @Override
         public void emit(Object key, Object value) {
             results.put(key, value);
-            if (remainCount.decrementAndGet() == 0) {
-                synchronized (isComplete) {
-                    isComplete.set(true);
-                    isComplete.notifyAll();
-                }
-            }
+            remainCount.decrementAndGet();
         }
 
         public Map getResults() {
@@ -165,19 +165,39 @@ public class ParallelReducer implements Reducer {
 
     @Override
     public Map reduce(List<Field> fields, ContextParams contextParams) {
-
-        AtomicBoolean isComplete = new AtomicBoolean(false);
-
-        RootCompleteNotifier root = new RootCompleteNotifier(fields.size(), isComplete);
+        RootCompleteNotifier root = new RootCompleteNotifier(fields.size());
         executorService.execute(new FieldsRunner(root, fields, contextParams));
 
-        synchronized(isComplete){
-            while (!isComplete.get()) {
-                try {
-                    isComplete.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+        return waitForComplete(fields,root);
+    }
+
+    // 顺便帮忙处理一些任务
+    private Map waitForComplete(List<Field> fields, RootCompleteNotifier root) {
+        // 最多重入多少次
+        int maxEnterCount = 50;
+
+        while (true) {
+            if (maxEnterCount > 0) {
+                --maxEnterCount;
+                if (maxEnterCount == 0) {
+                    log.error("max run count arrived: " + fields);
                 }
+            }
+
+            if (root.remainCount.get() == 0) {
+                break;
+            }
+
+            Runnable runnable = null;
+
+            try {
+                runnable = taskQueue.poll(50, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                // nothing todo
+            }
+
+            if (runnable != null) {
+                runnable.run();
             }
         }
 

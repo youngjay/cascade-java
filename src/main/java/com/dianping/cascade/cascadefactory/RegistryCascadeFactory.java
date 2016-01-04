@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -31,27 +32,45 @@ public class RegistryCascadeFactory implements CascadeFactory {
             )
         );
 
-        final Reducer reducer = config.getThreadCount() > 1 ?
-                new ParallelReducer(fieldInvoker, createThreadPoolExecutor(config.getThreadCount())) :
-                new SerialReducer(fieldInvoker);
+        int threadCount = config.getThreadCount();
+        Reducer reducer;
+
+        if (threadCount> 1) {
+            BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(threadCount);
+
+            reducer = new ParallelReducer(fieldInvoker, new ThreadPoolExecutor(
+                    threadCount,
+                    threadCount,
+                    0L,
+                    TimeUnit.MILLISECONDS,
+                    taskQueue, // 额外接受1倍的task，拍脑袋定的，可以优化
+                    new ThreadFactoryBuilder().setNameFormat("cascade-%d").build(),
+                    new ThreadPoolExecutor.CallerRunsPolicy()
+            ), taskQueue);
+
+        } else {
+            reducer = new SerialReducer(fieldInvoker);
+        }
+
+        final Reducer finalReducer = reducer;
 
         return new Cascade() {
             @Override
             public Map process(List<Field> fields, Map contextParams) {
-                return reducer.reduce(fields, ContextParams.create(contextParams));
+                return finalReducer.reduce(fields, ContextParams.create(contextParams));
             }
         };
     }
 
-    private ThreadPoolExecutor createThreadPoolExecutor(int threadCount) {
-        return new ThreadPoolExecutor(
-            threadCount,
-            threadCount,
-            0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(threadCount), // 额外接受1倍的task，拍脑袋定的，可以优化
-            new ThreadFactoryBuilder().setNameFormat("cascade-%d").build(),
-            new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-    }
+//    private ThreadPoolExecutor createThreadPoolExecutor(int threadCount) {
+//        return new ThreadPoolExecutor(
+//            threadCount,
+//            threadCount,
+//            0L,
+//            TimeUnit.MILLISECONDS,
+//            new LinkedBlockingQueue<Runnable>(threadCount), // 额外接受1倍的task，拍脑袋定的，可以优化
+//            new ThreadFactoryBuilder().setNameFormat("cascade-%d").build(),
+//            new ThreadPoolExecutor.CallerRunsPolicy()
+//        );
+//    }
 }
