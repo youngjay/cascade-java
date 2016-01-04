@@ -27,13 +27,17 @@ public class ParallelPermanceTest {
 
     @BeforeClass
     public void init() {
-        BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Delay()),
-                CascadeFactoryConfig.builder().threadCount(100).build());
-        multipleThreadCascade = factory.create();
+        CascadeFactoryConfig config1 = new CascadeFactoryConfig();
+        config1.setThreadCount(100);
+        BeansCascadeFactory factory1 = new BeansCascadeFactory(Lists.newArrayList(new Delay()),
+                config1);
+        multipleThreadCascade = factory1.create();
 
 
+        CascadeFactoryConfig config2 = new CascadeFactoryConfig();
+        config2.setThreadCount(1);
         BeansCascadeFactory factory2 = new BeansCascadeFactory(Lists.newArrayList(new Delay()),
-                CascadeFactoryConfig.builder().threadCount(1).build());
+                config2);
         singleThreadCascade = factory2.create();
     }
 

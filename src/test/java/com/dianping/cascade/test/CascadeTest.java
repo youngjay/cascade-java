@@ -31,8 +31,10 @@ public class CascadeTest {
 
     @BeforeClass
     public void init() {
+        CascadeFactoryConfig config = new CascadeFactoryConfig();
+        config.setThreadCount(3);
         BeansCascadeFactory factory = new BeansCascadeFactory(Lists.newArrayList(new Cooperation(), new User(), new Shop(), new Delay()),
-                CascadeFactoryConfig.builder().threadCount(3).build()
+                config
         );
         c = factory.create();
     }
