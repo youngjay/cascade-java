@@ -60,6 +60,8 @@ public class CascadeTest {
 
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.id"), 1);
         Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load.name"), "Someone");
+
+        System.out.println("Sample test-method One. Thread id is: " + Thread.currentThread().getId());
     }
 
     @Test

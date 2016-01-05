@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Custom suite" parallel="methods" thread-count="10">
+    <!--
+        System.out.println("Sample test-method One. Thread id is: " + Thread.currentThread().getId());
+    -->
+    <test name="cascade">
+        <classes>
+            <class name="com.dianping.cascade.test.CascadeTest"/>
+        </classes>
+    </test>
+    <test name="parallel">
+        <classes>
+            <class name="com.dianping.cascade.test.ParallelPermanceTest"/>
+        </classes>
+    </test>
+</suite>

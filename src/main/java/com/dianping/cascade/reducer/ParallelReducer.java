@@ -177,12 +177,14 @@ public class ParallelReducer implements Reducer {
         int maxEnterCount = 50;
 
         while (true) {
+            /* for debug */
             if (maxEnterCount > 0) {
                 --maxEnterCount;
                 if (maxEnterCount == 0) {
                     log.error("max run count arrived: " + fields);
                 }
             }
+            /* end for debug */
 
             if (root.remainCount.get() == 0) {
                 break;
@@ -193,7 +195,7 @@ public class ParallelReducer implements Reducer {
             try {
                 runnable = taskQueue.poll(50, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
-                // nothing todo
+                // do nothing
             }
 
             if (runnable != null) {
