@@ -15,9 +15,11 @@ import java.util.List;
 public class ParamResolver implements ParameterResolver {
     private static final ObjectMapper m = new ObjectMapper();
 
-    private static final List<? extends  Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
-
     private static final String SPLITTER = ",";
+    private static final List<? extends  Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
+    private static boolean isAllowNullFor(Class type) {
+        return !NOT_ALLOW_NULL_CLASSES.contains(type);
+    }
 
     private String[] paramKeys;
     private Class type;
@@ -27,10 +29,6 @@ public class ParamResolver implements ParameterResolver {
         this.paramKeys = paramKeysSplitByDot.split(SPLITTER);
         this.type = type;
         this.allowNull = isAllowNullFor(type);
-    }
-
-    private static boolean isAllowNullFor(Class type) {
-        return !NOT_ALLOW_NULL_CLASSES.contains(type);
     }
 
     @Override
