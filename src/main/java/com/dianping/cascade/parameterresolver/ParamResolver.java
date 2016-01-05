@@ -29,7 +29,7 @@ public class ParamResolver implements ParameterResolver {
         this.allowNull = isAllowNullFor(type);
     }
 
-    private boolean isAllowNullFor(Class type) {
+    private static boolean isAllowNullFor(Class type) {
         return !NOT_ALLOW_NULL_CLASSES.contains(type);
     }
 
