@@ -1,6 +1,10 @@
 package com.dianping.cascade.cascadefactory;
 
-import com.dianping.cascade.*;
+import com.dianping.cascade.Cascade;
+import com.dianping.cascade.CascadeAware;
+import com.dianping.cascade.CascadeFactory;
+import com.dianping.cascade.CascadeFactoryConfig;
+import lombok.Setter;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -11,6 +15,7 @@ import org.springframework.context.ApplicationContextAware;
 public class SpringContextCascadeFactory implements ApplicationContextAware, CascadeFactory {
     private BeansCascadeFactory beansCascadeFactory;
 
+    @Setter
     private CascadeFactoryConfig config = CascadeFactoryConfig.DEFAULT;
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
