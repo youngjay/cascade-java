@@ -176,7 +176,7 @@ public class ParallelReducer implements Reducer {
         // 最多重入多少次
         int maxEnterCount = 50;
 
-        while (true) {
+        while (root.remainCount.get() != 0) {
             /* for debug */
             if (maxEnterCount > 0) {
                 --maxEnterCount;
@@ -185,10 +185,6 @@ public class ParallelReducer implements Reducer {
                 }
             }
             /* end for debug */
-
-            if (root.remainCount.get() == 0) {
-                break;
-            }
 
             Runnable runnable = null;
 
