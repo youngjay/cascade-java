@@ -1,4 +1,7 @@
-package com.dianping.cascade;
+package com.dianping.cascade.reducer;
+
+import com.dianping.cascade.ContextParams;
+import com.dianping.cascade.Field;
 
 import java.util.List;
 import java.util.Map;

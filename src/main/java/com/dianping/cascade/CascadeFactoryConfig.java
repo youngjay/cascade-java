@@ -1,9 +1,11 @@
 package com.dianping.cascade;
 
+import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Builder;
+
+import java.util.List;
 
 /**
  * Created by yangjie on 1/3/16.
@@ -13,6 +15,7 @@ import lombok.experimental.Builder;
 @NoArgsConstructor
 public class CascadeFactoryConfig {
     private int threadCount = 1;
+    private List<FieldInvocationInterceptor> fieldInvocationInterceptors;
 
     public final static CascadeFactoryConfig DEFAULT = new CascadeFactoryConfig();
 }

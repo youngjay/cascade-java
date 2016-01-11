@@ -1,10 +1,11 @@
-package com.dianping.cascade.reducer;
+package com.dianping.cascade.reducer.impl;
 
 import com.dianping.cascade.*;
+import com.dianping.cascade.invocation.field.FieldInvocationHandler;
+import com.dianping.cascade.reducer.Reducer;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,10 +15,10 @@ import java.util.Map;
  * Created by yangjie on 12/5/15.
  */
 public class SerialReducer implements Reducer {
-    private FieldInvoker fieldInvoker;
+    private FieldInvocationHandler fieldInvocationHandler;
 
-    public SerialReducer(FieldInvoker fieldInvoker) {
-        this.fieldInvoker = fieldInvoker;
+    public SerialReducer(FieldInvocationHandler fieldInvocationHandler) {
+        this.fieldInvocationHandler = fieldInvocationHandler;
     }
 
     @Override
@@ -41,7 +42,7 @@ public class SerialReducer implements Reducer {
 
         ContextParams contextParams = parentContextParams.extend(field.getParams());
 
-        Object result = fieldInvoker.invoke(field, contextParams);
+        Object result = fieldInvocationHandler.invoke(field, contextParams);
 
         if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
             return result;

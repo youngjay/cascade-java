@@ -1,5 +1,11 @@
 package com.dianping.cascade;
 
+import com.dianping.cascade.annotation.Cacheable;
+import com.dianping.cascade.invocation.method.impl.CacheableMethodInvocationHandler;
+import com.dianping.cascade.invocation.method.impl.DefaultMethodInvocationHandler;
+import com.dianping.cascade.invocation.method.MethodInvocationHandler;
+import com.dianping.cascade.invocation.params.ContextParamsInvocationHandler;
+import com.dianping.cascade.invocation.params.impl.DefaultContextParamsInvocationHandler;
 import com.google.common.collect.Maps;
 
 import java.lang.reflect.Method;
@@ -10,9 +16,7 @@ import java.util.Map;
  * Created by yangjie on 12/5/15.
  */
 public class Registry {
-    private Map<String, ContextParamsInvoker> invokableMap = Maps.newHashMap();
-
-    private ContextParamsInvokerFactory contextParamsInvokerFactory = new ContextParamsInvokerFactory();
+    private Map<String, ContextParamsInvocationHandler> invokableMap = Maps.newHashMap();
 
     public void register(Object bean) {
         register(bean.getClass().getSimpleName(), bean);
@@ -26,13 +30,13 @@ public class Registry {
        }
     }
 
-    public ContextParamsInvoker get(String type, String methodName) {
+    public ContextParamsInvocationHandler get(String type, String methodName) {
         String mapKey = generateKey(type, methodName);
-        ContextParamsInvoker contextParamsInvoker = invokableMap.get(mapKey);
-        if (contextParamsInvoker == null) {
+        ContextParamsInvocationHandler contextParamsInvocationHandler = invokableMap.get(mapKey);
+        if (contextParamsInvocationHandler == null) {
             throw new RuntimeException(mapKey + " has not registered");
         }
-        return contextParamsInvoker;
+        return contextParamsInvocationHandler;
     }
 
     private String generateKey(String type, String methodName) {
@@ -48,7 +52,6 @@ public class Registry {
             throw new RuntimeException(mapKey + " has already registered");
         }
 
-        invokableMap.put(mapKey, contextParamsInvokerFactory.create(target, method));
+        invokableMap.put(mapKey, new DefaultContextParamsInvocationHandler(target, method));
     }
-
 }

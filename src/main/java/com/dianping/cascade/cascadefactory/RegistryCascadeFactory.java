@@ -1,13 +1,14 @@
 package com.dianping.cascade.cascadefactory;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invoker.field.ExceptionHandler;
-import com.dianping.cascade.invoker.field.PropsSupport;
-import com.dianping.cascade.invoker.field.RegistryFieldInvoker;
-import com.dianping.cascade.reducer.ParallelReducer;
-import com.dianping.cascade.reducer.SerialReducer;
+import com.dianping.cascade.invocation.field.FieldInvocationHandler;
+import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
+import com.dianping.cascade.invocation.field.impl.*;
+import com.dianping.cascade.reducer.impl.ParallelReducer;
+import com.dianping.cascade.reducer.Reducer;
+import com.dianping.cascade.reducer.impl.SerialReducer;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -19,26 +20,51 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangjie on 12/15/15.
  */
-@AllArgsConstructor
 public class RegistryCascadeFactory implements CascadeFactory {
     private Registry registry;
     private CascadeFactoryConfig config;
+    private Reducer reducer;
 
-    @Override
-    public Cascade create() {
-        final FieldInvoker fieldInvoker = new ExceptionHandler(
-                new PropsSupport(
-                    new RegistryFieldInvoker(registry)
-            )
-        );
+    public RegistryCascadeFactory(Registry registry, CascadeFactoryConfig config) {
+        this.registry = registry;
+        this.config = config;
 
-        int threadCount = config.getThreadCount();
-        Reducer reducer;
+        reducer =  createReducer(createFieldInvocationHandler(), config.getThreadCount());
+    }
 
+
+    private FieldInvocationHandler createFieldInvocationHandler() {
+
+        List<FieldInvocationInterceptor> fieldInvocationInterceptors = Lists.newArrayList();
+
+        fieldInvocationInterceptors.add(new RegistryInvoker(registry));
+        fieldInvocationInterceptors.add(new PropsSupport());
+
+        if (config.getFieldInvocationInterceptors() != null) {
+            fieldInvocationInterceptors.addAll(config.getFieldInvocationInterceptors());
+        }
+
+        fieldInvocationInterceptors.add(new ExceptionHandler());
+
+        FieldInvocationHandler last = null;
+        for (final FieldInvocationInterceptor filter : fieldInvocationInterceptors) {
+            final FieldInvocationHandler prev = last;
+            last = new FieldInvocationHandler() {
+                @Override
+                public Object invoke(Field field, ContextParams contextParams) {
+                    return filter.invoke(prev, field, contextParams);
+                }
+            };
+        }
+
+        return last;
+    }
+
+    private Reducer createReducer(FieldInvocationHandler fieldInvocationHandler, int threadCount) {
         if (threadCount> 1) {
             BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(threadCount);
 
-            reducer = new ParallelReducer(fieldInvoker, new ThreadPoolExecutor(
+            return new ParallelReducer(fieldInvocationHandler, new ThreadPoolExecutor(
                     threadCount,
                     threadCount,
                     0L,
@@ -49,15 +75,16 @@ public class RegistryCascadeFactory implements CascadeFactory {
             ), taskQueue);
 
         } else {
-            reducer = new SerialReducer(fieldInvoker);
+            return new SerialReducer(fieldInvocationHandler);
         }
+    }
 
-        final Reducer finalReducer = reducer;
-
+    @Override
+    public Cascade create() {
         return new Cascade() {
             @Override
             public Map process(List<Field> fields, Map contextParams) {
-                return finalReducer.reduce(fields, ContextParams.create(contextParams));
+                return reducer.reduce(fields, ContextParams.create(contextParams));
             }
         };
     }

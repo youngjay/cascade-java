@@ -1,6 +1,8 @@
-package com.dianping.cascade.reducer;
+package com.dianping.cascade.reducer.impl;
 
 import com.dianping.cascade.*;
+import com.dianping.cascade.invocation.field.FieldInvocationHandler;
+import com.dianping.cascade.reducer.Reducer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
@@ -9,11 +11,9 @@ import lombok.extern.apachecommons.CommonsLog;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,12 +21,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @CommonsLog
 public class ParallelReducer implements Reducer {
-    private FieldInvoker fieldInvoker;
+    private FieldInvocationHandler fieldInvocationHandler;
     private ExecutorService executorService;
     private BlockingQueue<Runnable> taskQueue;
 
-    public ParallelReducer(FieldInvoker fieldInvoker, ExecutorService executorService, BlockingQueue<Runnable> taskQueue) {
-        this.fieldInvoker = fieldInvoker;
+    public ParallelReducer(FieldInvocationHandler fieldInvocationHandler, ExecutorService executorService, BlockingQueue<Runnable> taskQueue) {
+        this.fieldInvocationHandler = fieldInvocationHandler;
         this.executorService = executorService;
         this.taskQueue = taskQueue;
     }
@@ -113,7 +113,7 @@ public class ParallelReducer implements Reducer {
         public void run() {
             ContextParams contextParams = parentContextParams.extend(field.getParams());
 
-            Object result = fieldInvoker.invoke(field, contextParams);
+            Object result = fieldInvocationHandler.invoke(field, contextParams);
 
             if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
                 completeNotifier.emit(field.getComputedAs(), result);

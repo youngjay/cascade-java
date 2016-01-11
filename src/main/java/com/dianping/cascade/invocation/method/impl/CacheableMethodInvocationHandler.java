@@ -1,7 +1,8 @@
-package com.dianping.cascade.invoker.method;
+package com.dianping.cascade.invocation.method.impl;
 
-import com.dianping.cascade.MethodInvoker;
 import com.dianping.cascade.annotation.Cacheable;
+import com.dianping.cascade.invocation.method.MethodInvocationHandler;
+import com.dianping.cascade.invocation.method.MethodInvocationInterceptor;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -14,13 +15,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangjie on 12/28/15.
  */
-public class CacheableMethodInvoker implements MethodInvoker {
+public class CacheableMethodInvocationHandler implements MethodInvocationInterceptor {
     private Cache<Object, Object> resultsCache;
-    private MethodInvoker methodInvoker;
 
-    public CacheableMethodInvoker(MethodInvoker methodInvoker, Cacheable cacheable) {
-        this.methodInvoker = methodInvoker;
-
+    public CacheableMethodInvocationHandler(Cacheable cacheable) {
         CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
 
         if (cacheable.expireMinutes() > 0) {
@@ -31,11 +29,11 @@ public class CacheableMethodInvoker implements MethodInvoker {
     }
 
     @Override
-    public Object invoke(final Object target, final Method method, final Object[] args) throws ExecutionException {
+    public Object invoke(final MethodInvocationHandler methodInvocationHandler, final Object target, final Method method, final Object[] args) throws ExecutionException {
         return resultsCache.get(Arrays.deepHashCode(args), new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                return CacheableMethodInvoker.this.methodInvoker.invoke(target, method, args);
+                return methodInvocationHandler.invoke(target, method, args);
             }
         });
     }
