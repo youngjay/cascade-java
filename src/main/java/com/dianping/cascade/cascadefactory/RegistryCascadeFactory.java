@@ -47,12 +47,12 @@ public class RegistryCascadeFactory implements CascadeFactory {
         fieldInvocationInterceptors.add(new ExceptionHandler());
 
         FieldInvocationHandler last = null;
-        for (final FieldInvocationInterceptor filter : fieldInvocationInterceptors) {
+        for (final FieldInvocationInterceptor interceptor : fieldInvocationInterceptors) {
             final FieldInvocationHandler prev = last;
             last = new FieldInvocationHandler() {
                 @Override
                 public Object invoke(Field field, ContextParams contextParams) {
-                    return filter.invoke(prev, field, contextParams);
+                    return interceptor.invoke(prev, field, contextParams);
                 }
             };
         }
