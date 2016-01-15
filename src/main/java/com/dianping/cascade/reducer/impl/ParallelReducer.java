@@ -119,7 +119,7 @@ public class ParallelReducer implements Reducer {
                 completeNotifier.emit(field.getComputedAs(), result);
             } else {
                 if (result instanceof Collection) {
-                    List resultList = Lists.newArrayList((Collection) result);
+                    List resultList = result instanceof List ? (List) result : Lists.newArrayList((Collection) result);
                     executorService.execute(new ListResultsRunner(resultList, new ListCompleteNotifier(resultList, completeNotifier, field.getComputedAs(), resultList.size()), field.getChildren(), contextParams));
                 } else {
                     Map resultMap = Util.toMap(result);
