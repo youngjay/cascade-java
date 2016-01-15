@@ -123,7 +123,7 @@ public class ParallelReducer implements Reducer {
                     executorService.execute(new ListResultsRunner(resultList, new ListCompleteNotifier(resultList, completeNotifier, field.getComputedAs(), resultList.size()), field.getChildren(), contextParams));
                 } else {
                     Map resultMap = Util.toMap(result);
-                    executorService.execute(new FieldsRunner(new MapCompleteNotifier(resultMap, completeNotifier, field.getComputedAs(), field.getChildren().size()), field.getChildren(), contextParams.extend(resultMap)));
+                    executorService.execute(new FieldsRunner(new MapCompleteNotifier(createMapWithAdditionalSize(resultMap, field.getChildren().size()), completeNotifier, field.getComputedAs(), field.getChildren().size()), field.getChildren(), contextParams.extend(resultMap)));
                 }
             }
 
@@ -156,12 +156,11 @@ public class ParallelReducer implements Reducer {
             int index = 0;
             for (Object o : parentResults) {
                 Map parentResultsMap = Util.toMap(o);
-                executorService.execute(new FieldsRunner(new MapCompleteNotifier(parentResultsMap, completeNotifier, index, fields.size()), fields, parentContextParams.extend(parentResultsMap)));
+                executorService.execute(new FieldsRunner(new MapCompleteNotifier(createMapWithAdditionalSize(parentResultsMap, fields.size()), completeNotifier, index, fields.size()), fields, parentContextParams.extend(parentResultsMap)));
                 ++index;
             }
         }
     }
-
 
     @Override
     public Map reduce(List<Field> fields, ContextParams contextParams) {
@@ -170,6 +169,15 @@ public class ParallelReducer implements Reducer {
 
         return waitForComplete(fields,root);
     }
+
+    // 防止在插入child fields的时候map进行rehash，所以这里事先分配好大小
+    @SuppressWarnings("unchecked")
+    private Map createMapWithAdditionalSize(Map baseMap, int additionalCount) {
+        Map ret = Maps.newHashMapWithExpectedSize(baseMap.size() + additionalCount);
+        ret.putAll(baseMap);
+        return ret;
+    }
+
 
     // 顺便帮忙处理一些任务
     private Map waitForComplete(List<Field> fields, RootCompleteNotifier root) {
