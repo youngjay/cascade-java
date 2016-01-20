@@ -1,7 +1,5 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.invocation.method.MethodInvocationInterceptor;
-
 import java.lang.reflect.Method;
 
 /**

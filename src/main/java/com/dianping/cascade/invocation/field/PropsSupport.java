@@ -1,9 +1,9 @@
-package com.dianping.cascade.invocation.field.impl;
+package com.dianping.cascade.invocation.field;
 
 import com.dianping.cascade.ContextParams;
 import com.dianping.cascade.Field;
-import com.dianping.cascade.invocation.field.FieldInvocationHandler;
-import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
+import com.dianping.cascade.FieldInvocationHandler;
+import com.dianping.cascade.FieldInvocationInterceptor;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import org.apache.commons.beanutils.PropertyUtils;

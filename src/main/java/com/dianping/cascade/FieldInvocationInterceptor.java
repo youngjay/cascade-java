@@ -1,7 +1,4 @@
-package com.dianping.cascade.invocation.field;
-
-import com.dianping.cascade.ContextParams;
-import com.dianping.cascade.Field;
+package com.dianping.cascade;
 
 /**
  * Created by yangjie on 12/5/15.

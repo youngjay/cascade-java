@@ -1,13 +1,10 @@
 package com.dianping.cascade.cascadefactory;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invocation.field.FieldInvocationHandler;
-import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
-import com.dianping.cascade.invocation.field.impl.*;
-import com.dianping.cascade.reducer.impl.ParallelReducer;
-import com.dianping.cascade.reducer.Reducer;
-import com.dianping.cascade.reducer.impl.SerialReducer;
-import com.google.common.collect.Lists;
+import com.dianping.cascade.FieldInvocationHandler;
+import com.dianping.cascade.reducer.ParallelReducer;
+import com.dianping.cascade.Reducer;
+import com.dianping.cascade.reducer.SerialReducer;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.util.List;

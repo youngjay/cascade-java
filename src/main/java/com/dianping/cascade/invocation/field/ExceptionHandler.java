@@ -1,8 +1,8 @@
-package com.dianping.cascade.invocation.field.impl;
+package com.dianping.cascade.invocation.field;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invocation.field.FieldInvocationHandler;
-import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
+import com.dianping.cascade.FieldInvocationHandler;
+import com.dianping.cascade.FieldInvocationInterceptor;
 import lombok.AllArgsConstructor;
 
 /**

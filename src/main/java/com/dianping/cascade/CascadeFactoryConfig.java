@@ -1,6 +1,5 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

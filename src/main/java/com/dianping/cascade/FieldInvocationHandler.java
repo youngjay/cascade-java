@@ -1,4 +1,4 @@
-package com.dianping.cascade.invocation.field;
+package com.dianping.cascade;
 
 import com.dianping.cascade.ContextParams;
 import com.dianping.cascade.Field;

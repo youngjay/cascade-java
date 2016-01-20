@@ -1,14 +1,9 @@
-package com.dianping.cascade.invocation;
+package com.dianping.cascade.invocation.method;
 
-import com.dianping.cascade.ContextParams;
-import com.dianping.cascade.Field;
-import com.dianping.cascade.FieldInvocationInterceptorFactory;
 import com.dianping.cascade.MethodInvocationInterceptorFactory;
 import com.dianping.cascade.annotation.Cacheable;
-import com.dianping.cascade.invocation.field.FieldInvocationHandler;
-import com.dianping.cascade.invocation.field.FieldInvocationInterceptor;
-import com.dianping.cascade.invocation.method.MethodInvocationHandler;
-import com.dianping.cascade.invocation.method.MethodInvocationInterceptor;
+import com.dianping.cascade.MethodInvocationHandler;
+import com.dianping.cascade.MethodInvocationInterceptor;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 

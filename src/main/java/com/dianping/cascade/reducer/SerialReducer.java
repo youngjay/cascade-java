@@ -1,8 +1,8 @@
-package com.dianping.cascade.reducer.impl;
+package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.invocation.field.FieldInvocationHandler;
-import com.dianping.cascade.reducer.Reducer;
+import com.dianping.cascade.FieldInvocationHandler;
+import com.dianping.cascade.Reducer;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

@@ -1,4 +1,4 @@
-package com.dianping.cascade.invocation.method;
+package com.dianping.cascade;
 
 /**
  * Created by yangjie on 1/11/16.
