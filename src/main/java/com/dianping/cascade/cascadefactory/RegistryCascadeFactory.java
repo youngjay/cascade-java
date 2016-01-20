@@ -29,36 +29,36 @@ public class RegistryCascadeFactory implements CascadeFactory {
         this.registry = registry;
         this.config = config;
 
-        reducer =  createReducer(createFieldInvocationHandler(), config.getThreadCount());
+        reducer =  createReducer(registry.getFieldInvocationHandler(), config.getThreadCount());
     }
 
 
-    private FieldInvocationHandler createFieldInvocationHandler() {
-
-        List<FieldInvocationInterceptor> fieldInvocationInterceptors = Lists.newArrayList();
-
-        fieldInvocationInterceptors.add(new RegistryInvoker(registry));
-        fieldInvocationInterceptors.add(new PropsSupport());
-
-        if (config.getFieldInvocationInterceptors() != null) {
-            fieldInvocationInterceptors.addAll(config.getFieldInvocationInterceptors());
-        }
-
-        fieldInvocationInterceptors.add(new ExceptionHandler());
-
-        FieldInvocationHandler last = null;
-        for (final FieldInvocationInterceptor interceptor : fieldInvocationInterceptors) {
-            final FieldInvocationHandler prev = last;
-            last = new FieldInvocationHandler() {
-                @Override
-                public Object invoke(Field field, ContextParams contextParams) {
-                    return interceptor.invoke(prev, field, contextParams);
-                }
-            };
-        }
-
-        return last;
-    }
+//    private FieldInvocationHandler createFieldInvocationHandler() {
+//
+//        List<FieldInvocationInterceptor> fieldInvocationInterceptors = Lists.newArrayList();
+//
+//        fieldInvocationInterceptors.add(new RegistryInvoker(registry));
+//        fieldInvocationInterceptors.add(new PropsSupport());
+//
+//        if (config.getFieldInvocationInterceptors() != null) {
+//            fieldInvocationInterceptors.addAll(config.getFieldInvocationInterceptors());
+//        }
+//
+//        fieldInvocationInterceptors.add(new ExceptionHandler());
+//
+//        FieldInvocationHandler last = null;
+//        for (final FieldInvocationInterceptor interceptor : fieldInvocationInterceptors) {
+//            final FieldInvocationHandler prev = last;
+//            last = new FieldInvocationHandler() {
+//                @Override
+//                public Object invoke(Field field, ContextParams contextParams) {
+//                    return interceptor.invoke(prev, field, contextParams);
+//                }
+//            };
+//        }
+//
+//        return last;
+//    }
 
     private Reducer createReducer(FieldInvocationHandler fieldInvocationHandler, int threadCount) {
         if (threadCount> 1) {

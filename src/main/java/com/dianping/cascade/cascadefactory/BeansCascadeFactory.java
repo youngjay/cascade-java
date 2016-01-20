@@ -11,10 +11,10 @@ import java.util.Collection;
  * Created by yangjie on 12/15/15.
  */
 public class BeansCascadeFactory implements CascadeFactory {
-    private Registry registry = new Registry();
     private RegistryCascadeFactory registryCascadeFactory;
 
     public BeansCascadeFactory(Collection<? extends Object> beans, CascadeFactoryConfig config) {
+        Registry registry = new Registry(config);
         for (Object bean : beans) {
             registry.register(bean);
         }
