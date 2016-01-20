@@ -52,8 +52,6 @@ public class Registry {
     }
 
     private MethodInvocationHandler createMethodInvocationHandler(final Method method, final Object target) {
-
-
         List<MethodInvocationInterceptor> methodInvocationInterceptors = Lists.newArrayList();
 
         methodInvocationInterceptors.add(new MethodInvocationInterceptor() {
@@ -96,19 +94,12 @@ public class Registry {
             }
         });
 
+        fieldInvocationInterceptors.add(new PropsSupport());
 
-        List<FieldInvocationInterceptorFactory> fieldInvocationInterceptorFactories = config.getFieldInvocationInterceptorFactories();
-
-        if (fieldInvocationInterceptorFactories != null) {
-            for (FieldInvocationInterceptorFactory fieldInvocationInterceptorFactory : fieldInvocationInterceptorFactories) {
-                FieldInvocationInterceptor interceptor = fieldInvocationInterceptorFactory.create();
-                if (interceptor != null) {
-                    fieldInvocationInterceptors.add(interceptor);
-                }
-            }
+        if (config.getFieldInvocationInterceptors() != null) {
+            fieldInvocationInterceptors.addAll(config.getFieldInvocationInterceptors());
         }
 
-        fieldInvocationInterceptors.add(new PropsSupport());
         fieldInvocationInterceptors.add(new ExceptionHandler());
 
         return createFieldInvocationHandlerFromInterceptors(fieldInvocationInterceptors);
