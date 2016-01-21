@@ -1,54 +1,103 @@
-# cascade
+# Cascade
 
-## current version: 4.0.0
+支持并行和子查询的前后端的http通讯框架
 
+## MAVEN
 
-## 解决的问题
-一个页面可能由多个后台模块组成，前端因为性能的关系，会要求服务端把所有的数据拼在一个请求里面返回。
-
-这样就需要后端除了业务的模型以后，还要为这些“拼装”的视图做VO（或者DTO）。
-
-这样做的缺点：
-
-- 这些DTO对于业务来说是没有任何意义的，它们都只是视图的需要。
-- 因为java是强类型的语言，所以会生成很多个DTO。
-- 页面的变化特别快，从而导致这些DTO也是极不稳定的。
-- 拼装的逻辑都是类似的
-
-## 客户端
-
-- [cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
-
-## demo
-- [cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
-
-cascade-java + servlet + ajax
-
-- [cascade-spring-demo](http://code.dianpingoa.com/cascade/cascade-spring-demo/tree/master)
-
-cascade-java + spring + pigeon + cascade-client
-
-
-## 方法
-
-- register
-
-注册处理的对象，class.getSimpleName() 作为field的type， 所有public method.getMethodName() 作为category
-
-```
-cascade.register(Object bean)
+```xml
+<dependency>
+    <groupId>com.dianping</groupId>
+    <artifactId>cascade</artifactId>
+    <version>${cascade.version}</version>
+</dependency>
 ```
 
-- process
+## 注册cascade
+
+### 通过spring注册
+
+在spring的配置文件中加入```cascadeFactory```和```cascade```
+
+```xml
+<bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" />
+<bean id="cascade" factory-bean="cascadeFactory" factory-method="create" />
+```
+
+给需要导出的class实现```CascadeAware```接口（这是一个空接口）
+
+```java
+@Component
+public class Performance implements CascadeAware {
+    @Autowired
+    private ShopInfoService shopInfoService;
+
+    public PerformanceModel query(@Param("shopId") int shopId, @Param("operator") UserContext operator) {
+        return shopInfoService.getPerformanceModelByShopId(shopId, operator.getLoginId());
+    }
+
+}
+```
+
+### 手动注册
+
+```java
+BeansCascadeFactory beansCascadeFactory = new BeansCascadeFactory(Lists.newArrayList(
+    new Cooperation(),
+    new Shop(),
+    new User()
+), CascadeFactoryConfig.DEFAULT);
+
+Cascade cascade = beansCascadeFactory.create();
+```
+
+## 使用cascade
+
+```cascade```接口只有一个方法
 
 ```
-cascade.process(List<Field> fields, Map contextParams)
+public interface Cascade {
+    Map process(List<Field> fields, Map contextParams);
+}
 ```
 
-处理fields，contextParams可以传入上下文数据。
+在servlet中使用cascade
 
+```java
+public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+    Object result = cascade.process(JSON.parseArray(CharStreams.toString(req.getReader()), Field.class), null);
+    res.getWriter().write(JSON.toJSONString(result));
+}
+```
 
-## Field属性
+在spring mvc中使用cascade
+
+```
+@Autowired
+private Cascade cascade;
+
+@RequestMapping(value="", method = RequestMethod.POST)
+@ResponseBody
+public Object cascade(@RequestBody List<Field> fields) {
+    final Integer loginId = LoginUtils.getLoginId();
+
+    return cascade.process(fields, new HashMap() {{
+        put("operatorId", loginId);
+    }});
+}
+```
+
+## API
+
+### Map cascade.process(List<Field> fields, Map contextParams);
+
+处理field，返回结果
+
+参数  
+
+- fields： ```Field```列表,请参考Field章节
+- contextParams： 调用者传入的```ContextParams```,请参考ContextParams章节
+
+## Field
 
 - type(String)： 表示该field返回数据的类型，必填
 - category(String, default=“query"l)： 表示该field在type中的分类
@@ -57,28 +106,59 @@ cascade.process(List<Field> fields, Map contextParams)
 - children(List<Field>, optional)：子属性
 - props(List<String>, optional): 需要返回的属性值。默认是返回全部
 
-    例子
+一个Field例子
     
-    ```
-    [
-        {
-            "type": "User",
-            "params":  {
-                "shopId": 2334123
-            },
-            "category":"queryPublicSeaInfo",
-            "as":"publicSeaInfo",
-            "props": ["loginId", "realName"]
+```js
+[
+    {
+        "type": "User",
+        "params":  {
+            "shopId": 2334123
         },
-        {
-            "type": "Enum",
-            "category":"salesTypeEnum",
-            "as":"salesTypeEnum",
-        }
-    ]
-    ```
+        "category":"queryPublicSeaInfo",
+        "as":"publicSeaInfo",
+        "props": ["loginId", "realName"]
+    },
+    {
+        "type": "Enum",
+        "category":"salesTypeEnum",
+        "as":"salesTypeEnum"
+    }
+]
+```
     
+## ContextParams
+在整个cascade处理的流程中ContextParams保存了当前Field所需要的上下文信息，业务方法能通过@Param注释从它里面获取需要的字段。
+
+每个Field在被处理的时候，它能取到的ContextParams都会包括它的上级的ContextParams和它上级的返回结果，直到最外层调用者传入的那个ContextParams
+
+## CascadeFactoryConfig
+
+对casade的配置,可以在声明SpringContextCascadeFactory的时候传入例如:
+
+```xml
+<bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" >
+    <constructor-arg index="0">
+        <bean class="com.dianping.cascade.CascadeFactoryConfig">
+            <property name="threadCount" value="100" />
+            <property name="fieldInvocationInterceptors">
+                <list>
+                    <bean class="com.dianping.cascade.CatInterceptor" />
+                </list>
+            </property>
+        </bean>
+    </constructor-arg>
+</bean>
+```
+
+- int threadCount: 同时处理field的线程数,默认为1,单线程
+- ```List<FieldInvocationInterceptor>``` fieldInvocationInterceptors: 处理field的时候自定义处理器,默认为空
+- ```List<MethodInvocationInterceptorFactory>``` methodInvocationInterceptorFactories: 根据cascade方法生成的自定义处理器工厂,默认为空
+
+
 ## 注释
+
+在导入的cascade类中,我们可以通过注释来获取ContextParams中的参数
 
 - @Param(key)
     从上下文获取某个key的值
@@ -88,36 +168,28 @@ cascade.process(List<Field> fields, Map contextParams)
     1. params 字段传入的
     2. 它的parent的返回值（如果有的话）
     3. 它的parent的所有参数
-    
-        
-        ```
-         public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
-        ```
-
-        这些参数都会被组织成map的形式，可以通过@Param("key")去获取
+            
+    ```java
+    public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator)
+    ```
 
 - @Entity
 
-    用上下文的参数构造一个bean
-    
+    用上下文的参数构造一个bean    
         
-    ```
-     public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
+    ```java
+    public Collection<String> query(@Entity UserDTO user, @Param("operator") UserContext operator)
     ```
 
 - @Cacheable
+
     缓存返回结果
-    
-    参数:
-    
-        - expireMinutes: int
             
-            多少分钟过期，默认永不过期
+    expireMinutes   多少分钟过期，默认永不过期
             
-    ```
+    ```java
     @Cacheable(expireMinutes=30)
-    public UserDTO load(@Param("userId") int id) 
-        
+    public UserDTO load(@Param("userId") int id)         
     ```
 
 ## 异常处理
@@ -126,124 +198,19 @@ cascade默认会对抛出的异常标注上异常出现的位置类似于 ```[Us
 
 如果不想显示位置的话，请抛出 ``` com.dianping.cascade.BusinessException ```
 
-## 开始使用
-- 先引入maven
-
-```
-<dependency>
-    <groupId>com.dianping</groupId>
-    <artifactId>cascade</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-
-[cascade version] (http://mvn.dianpingoa.com/webapp/search/artifact/?1&q=cascade)
 
 
-- 注册cascade
+## 客户端
 
-如果与spring集成,只要简单的配置2个bean即可
+- [cascade-client](http://code.dianpingoa.com/cascade/cascade-client/tree/master)
 
-```
-    <bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" />
-    <bean factory-bean="cascadeFactory" factory-method="create" />
-```
+## demo
+- [cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
 
-然后给需要注入的bean实现 CascadeAware接口作为标识,例如
+  cascade-java + servlet + ajax
 
-```
-@Component
-public class Action implements CascadeAware {
-    @Autowired
-    private ModuleConfigService moduleConfigService;
+- [cascade-spring-demo](http://code.dianpingoa.com/cascade/cascade-spring-demo/tree/master)
 
-
-    public Collection<String> query(@Param("shopId") int shopId, @Param("operator") UserContext operator) {
-        return moduleConfigService.getActionModuleList(shopId, operator.getSerialNumber(), operator.getLoginId());
-    }
-}
-```
-
-即可
-
-如果没有用spring的话,需要自己创建cascade实例,并且手工调用register方法了. 具体实现可以参考 [cascade-servlet-demo](http://code.dianpingoa.com/cascade/cascade-servlet-demo/tree/master)
-
-
-- 调用cascade
-
-
-spring例子
-
-```
-public class CascadeController {
-    @Autowired
-    private Cascade cascade;
-
-    @RequestMapping(value="", method = RequestMethod.POST)
-    @WrapWithStatus
-    @ResponseBody
-    public Object cascade(@RequestBody List<Field> fields) {
-        final Integer loginId = LoginUtils.getLoginId();
-
-        return cascade.process(fields, new HashMap() {{
-           put("operatorId", loginId);
-        }});
-    }
-}
-```
-
-
-struts例子
-
-
-```
-public class CascadeAction extends AjaxBaseWithStatus {
-    @Autowired
-    @Qualifier("cascade")
-    private Cascade cascade;
-
-    public String query() {
-        HttpServletRequest request = ServletActionContext.getRequest();
-
-        List<Field> fields;
-
-        try {
-            fields = JSON.parseArray(readString(request.getReader()), Field.class);
-        } catch (IOException ex) {
-            throw new RuntimeException("cascade field 格式错误");
-        }
-
-        Object result = cascade.process(fields, new HashMap() {{
-            put("operator", ContextHolder.getUserContext());
-        }});
-
-        setResponseData(result);
-
-        return SUCCESS;
-
-    }
-
-    private String readString(Reader reader) {
-        // read content
-        BufferedReader bufferReader = new BufferedReader(reader);
-        String line;
-        StringBuilder buffer = new StringBuilder();
-
-        try {
-            while ((line = bufferReader.readLine()) != null) {
-                buffer.append(line);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return buffer.toString();
-    }
-}
-
-```
-
-
-
+  cascade-java + spring + pigeon + cascade-client
 
 
