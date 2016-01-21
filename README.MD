@@ -134,7 +134,7 @@ public Object cascade(@RequestBody List<Field> fields) {
 
 ## CascadeFactoryConfig
 
-对casade的配置,可以在声明SpringContextCascadeFactory的时候传入例如:
+对casade的配置,可以在声明SpringContextCascadeFactory的时候传入,例如:
 
 ```xml
 <bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" >
@@ -151,9 +151,15 @@ public Object cascade(@RequestBody List<Field> fields) {
 </bean>
 ```
 
-- int threadCount: 同时处理field的线程数,默认为1,单线程
-- ```List<FieldInvocationInterceptor>``` fieldInvocationInterceptors: 处理field的时候自定义处理器,默认为空
-- ```List<MethodInvocationInterceptorFactory>``` methodInvocationInterceptorFactories: 根据cascade方法生成的自定义处理器工厂,默认为空
+- threadCount: 同时处理field的线程数,默认为1,单线程
+- fieldInvocationInterceptors: 关注于field的自定义处理器列表,默认为空
+- methodInvocationInterceptorFactories: 根据关注于Method的自定义处理器工厂列表,默认为空
+
+## 自定义处理器
+
+### CatInterceptor
+
+可以在cat上查看每个Field处理的信息
 
 
 ## 注释
