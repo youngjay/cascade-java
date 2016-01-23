@@ -1,9 +1,5 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.annotation.Entity;
-import com.dianping.cascade.annotation.Param;
-import com.dianping.cascade.parameterresolver.EntityResolver;
-import com.dianping.cascade.parameterresolver.ParamResolver;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
@@ -14,12 +10,12 @@ import java.util.List;
 /**
  * Created by yangjie on 12/27/15.
  */
-public class ParameterResolvers {
+public class MethodParametersResolver {
 
     private List<ParameterResolver> parameterResolvers = Lists.newArrayList();
     private String methodName;
 
-    public ParameterResolvers(Method method) {
+    public MethodParametersResolver(Method method, List<ParameterResolverFactory> parameterResolverFactories) {
         methodName = method.getName();
         int parameterIndex = 0;
 
@@ -28,23 +24,26 @@ public class ParameterResolvers {
         for (Annotation[] annotations : method.getParameterAnnotations()) {
             Class type = types[parameterIndex];
 
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof Param) {
-                    parameterResolvers.add(new ParamResolver(((Param) annotation).value(), type));
-                    break;
-                }
-                if (annotation instanceof Entity) {
-                    parameterResolvers.add(new EntityResolver(type));
-                    break;
-                }
-            }
+            ParameterResolver parameterResolver = getParameterResolver(annotations, type, parameterResolverFactories);
 
-            parameterIndex += 1;
-
-            if (parameterResolvers.size() != parameterIndex) {
+            if (parameterResolver == null) {
                 throw new IllegalArgumentException(methodName + ": every argument must have @Param or @Entity annotation");
             }
+
+            parameterResolvers.add(parameterResolver);
+
+            parameterIndex += 1;
         }
+    }
+
+    private ParameterResolver getParameterResolver(Annotation[] annotations, Class type, List<ParameterResolverFactory> parameterResolverFactories) {
+        for (ParameterResolverFactory parameterResolverFactory : parameterResolverFactories) {
+            ParameterResolver parameterResolver = parameterResolverFactory.create(annotations, type);
+            if (parameterResolver != null) {
+                return parameterResolver;
+            }
+        }
+        return null;
     }
 
     public List<Object> resolve(final ContextParams params) {

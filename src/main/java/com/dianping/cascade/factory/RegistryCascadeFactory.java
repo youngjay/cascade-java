@@ -1,4 +1,4 @@
-package com.dianping.cascade.cascadefactory;
+package com.dianping.cascade.factory;
 
 import com.dianping.cascade.*;
 import com.dianping.cascade.reducer.ParallelReducer;

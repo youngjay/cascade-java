@@ -1,4 +1,4 @@
-package com.dianping.cascade.cascadefactory;
+package com.dianping.cascade.factory;
 
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.CascadeFactory;
