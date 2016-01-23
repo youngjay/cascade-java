@@ -19,7 +19,7 @@ public class RegistryCascadeFactory implements CascadeFactory {
     private Reducer reducer;
 
     public RegistryCascadeFactory(Registry registry, CascadeFactoryConfig config) {
-        reducer =  createReducer(registry.getFieldInvocationHandler(), config.getThreadCount());
+        reducer =  createReducer(registry.getInvocationHandler(), config.getThreadCount());
     }
 
     private Reducer createReducer(InvocationHandler invocationHandler, int threadCount) {
