@@ -1,8 +1,6 @@
 package com.dianping.cascade.invocation.interceptor;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.InvocationHandler;
-import com.dianping.cascade.InvocationInterceptor;
 
 /**
  * Created by yangjie on 1/3/16.

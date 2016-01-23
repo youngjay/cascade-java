@@ -1,8 +1,5 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.ContextParams;
-import com.dianping.cascade.Field;
-
 import java.util.List;
 import java.util.Map;
 
