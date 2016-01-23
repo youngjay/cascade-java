@@ -1,8 +1,6 @@
 package com.dianping.cascade.reducer;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.FieldInvocationHandler;
-import com.dianping.cascade.Reducer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
@@ -21,12 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @CommonsLog
 public class ParallelReducer implements Reducer {
-    private FieldInvocationHandler fieldInvocationHandler;
+    private InvocationHandler invocationHandler;
     private ExecutorService executorService;
     private BlockingQueue<Runnable> taskQueue;
 
-    public ParallelReducer(FieldInvocationHandler fieldInvocationHandler, ExecutorService executorService, BlockingQueue<Runnable> taskQueue) {
-        this.fieldInvocationHandler = fieldInvocationHandler;
+    public ParallelReducer(InvocationHandler invocationHandler, ExecutorService executorService, BlockingQueue<Runnable> taskQueue) {
+        this.invocationHandler = invocationHandler;
         this.executorService = executorService;
         this.taskQueue = taskQueue;
     }
@@ -113,7 +111,7 @@ public class ParallelReducer implements Reducer {
         public void run() {
             ContextParams contextParams = parentContextParams.extend(field.getParams());
 
-            Object result = fieldInvocationHandler.invoke(field, contextParams);
+            Object result = invocationHandler.invoke(field, contextParams);
 
             if (field.getChildren().size() == 0 || Util.canNotHasChildren(result)) {
                 completeNotifier.emit(field.getComputedAs(), result);

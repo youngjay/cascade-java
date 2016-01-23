@@ -15,8 +15,7 @@ import java.util.List;
 public class CascadeFactoryConfig {
     private int threadCount = 1;
 
-    private List<FieldInvocationInterceptor> fieldInvocationInterceptors;
-    private List<MethodInvocationInterceptorFactory> methodInvocationInterceptorFactories;
+    private List<InvocationInterceptorFactory> fieldInvocationInterceptorFactories;
 
     public final static CascadeFactoryConfig DEFAULT = new CascadeFactoryConfig();
 }

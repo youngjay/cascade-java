@@ -1,9 +1,7 @@
 package com.dianping.cascade.cascadefactory;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.FieldInvocationHandler;
 import com.dianping.cascade.reducer.ParallelReducer;
-import com.dianping.cascade.Reducer;
 import com.dianping.cascade.reducer.SerialReducer;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -18,22 +16,17 @@ import java.util.concurrent.TimeUnit;
  * Created by yangjie on 12/15/15.
  */
 public class RegistryCascadeFactory implements CascadeFactory {
-    private Registry registry;
-    private CascadeFactoryConfig config;
     private Reducer reducer;
 
     public RegistryCascadeFactory(Registry registry, CascadeFactoryConfig config) {
-        this.registry = registry;
-        this.config = config;
-
         reducer =  createReducer(registry.getFieldInvocationHandler(), config.getThreadCount());
     }
 
-    private Reducer createReducer(FieldInvocationHandler fieldInvocationHandler, int threadCount) {
+    private Reducer createReducer(InvocationHandler invocationHandler, int threadCount) {
         if (threadCount> 1) {
             BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(threadCount);
 
-            return new ParallelReducer(fieldInvocationHandler, new ThreadPoolExecutor(
+            return new ParallelReducer(invocationHandler, new ThreadPoolExecutor(
                     threadCount,
                     threadCount,
                     0L,
@@ -44,7 +37,7 @@ public class RegistryCascadeFactory implements CascadeFactory {
             ), taskQueue);
 
         } else {
-            return new SerialReducer(fieldInvocationHandler);
+            return new SerialReducer(invocationHandler);
         }
     }
 

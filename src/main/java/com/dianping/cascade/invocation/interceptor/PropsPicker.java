@@ -1,9 +1,9 @@
-package com.dianping.cascade.invocation.field;
+package com.dianping.cascade.invocation.interceptor;
 
 import com.dianping.cascade.ContextParams;
 import com.dianping.cascade.Field;
-import com.dianping.cascade.FieldInvocationHandler;
-import com.dianping.cascade.FieldInvocationInterceptor;
+import com.dianping.cascade.InvocationHandler;
+import com.dianping.cascade.InvocationInterceptor;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -15,10 +15,10 @@ import java.util.Map;
  * Created by yangjie on 12/12/15.
  */
 @AllArgsConstructor
-public class PropsSupport implements FieldInvocationInterceptor {
+public class PropsPicker implements InvocationInterceptor {
     @Override
-    public Object invoke(FieldInvocationHandler fieldInvocationHandler, Field field, ContextParams contextParams) {
-        Object result = fieldInvocationHandler.invoke(field, contextParams);
+    public Object invoke(InvocationHandler invocationHandler, Field field, ContextParams contextParams) {
+        Object result = invocationHandler.invoke(field, contextParams);
 
         List<String> props = field.getProps();
 

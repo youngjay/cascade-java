@@ -1,19 +1,18 @@
-package com.dianping.cascade.invocation.field;
+package com.dianping.cascade.invocation.interceptor;
 
 import com.dianping.cascade.*;
-import com.dianping.cascade.FieldInvocationHandler;
-import com.dianping.cascade.FieldInvocationInterceptor;
-import lombok.AllArgsConstructor;
+import com.dianping.cascade.InvocationHandler;
+import com.dianping.cascade.InvocationInterceptor;
 
 /**
  * Created by yangjie on 1/3/16.
  */
-@AllArgsConstructor
-public class ExceptionHandler implements FieldInvocationInterceptor {
+public class ExceptionHandler implements InvocationInterceptor {
+
     @Override
-    public Object invoke(FieldInvocationHandler fieldInvocationHandler, Field field, ContextParams contextParams) {
+    public Object invoke(InvocationHandler invocationHandler, Field field, ContextParams contextParams) {
         try {
-            return fieldInvocationHandler.invoke(field, contextParams);
+            return invocationHandler.invoke(field, contextParams);
         } catch (Throwable ex) {
             Throwable cause = getCause(ex);
 

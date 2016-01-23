@@ -1,8 +1,10 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.invocation.field.ExceptionHandler;
-import com.dianping.cascade.invocation.field.PropsSupport;
-import com.dianping.cascade.invocation.method.CacheableMethodInvocationInterceptorFactory;
+import com.dianping.cascade.invocation.interceptor.ExceptionHandler;
+import com.dianping.cascade.invocation.interceptor.PropsPicker;
+import com.dianping.cascade.invocation.interceptor.factory.CacheableFactory;
+import com.dianping.cascade.invocation.interceptor.factory.MethodInvokerFactory;
+import com.dianping.cascade.invocation.interceptor.factory.ReflectInterceptorFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -15,7 +17,7 @@ import java.util.Map;
  * Created by yangjie on 12/5/15.
  */
 public class Registry {
-    private Map<String, FieldInvocationHandler> fieldInvocationHandlerMap = Maps.newHashMap();
+    private Map<String, InvocationHandler> fieldInvocationHandlerMap = Maps.newHashMap();
 
     private CascadeFactoryConfig config;
 
@@ -35,14 +37,14 @@ public class Registry {
        }
     }
 
-    private String generateKey(String type, String methodName) {
+    private String getKey(String type, String methodName) {
         return type + "." + methodName;
     }
 
     private void registerMethod(String type, Object target, Method method) {
         String methodName = method.getName();
 
-        String mapKey = generateKey(type, methodName);
+        String mapKey = getKey(type, methodName);
 
         if (fieldInvocationHandlerMap.containsKey(mapKey)) {
             throw new RuntimeException(mapKey + " has already registered");
@@ -51,69 +53,50 @@ public class Registry {
         fieldInvocationHandlerMap.put(mapKey, buildFieldInvocationHandler(method, target));
     }
 
-    private MethodInvocationHandler createMethodInvocationHandler(final Method method, final Object target) {
-        List<MethodInvocationInterceptor> methodInvocationInterceptors = Lists.newArrayList();
-
-        methodInvocationInterceptors.add(new MethodInvocationInterceptor() {
-            @Override
-            public Object invoke(MethodInvocationHandler handler, Object[] args) throws Exception {
-                return method.invoke(target, args);
-            }
-        });
-
-        List<MethodInvocationInterceptorFactory> methodInvocationInterceptorFactories = config.getMethodInvocationInterceptorFactories();
-
-        if (methodInvocationInterceptorFactories == null) {
-            methodInvocationInterceptorFactories = Lists.newArrayList();
-        }
-
-        methodInvocationInterceptorFactories.add(new CacheableMethodInvocationInterceptorFactory());
-
-        for (MethodInvocationInterceptorFactory methodInvocationInterceptorFactory : methodInvocationInterceptorFactories) {
-            MethodInvocationInterceptor interceptor = methodInvocationInterceptorFactory.create(method, target);
-            if (interceptor != null) {
-                methodInvocationInterceptors.add(interceptor);
-            }
-        }
-
-        return createMethodInvocationHandlerFromInterceptors(methodInvocationInterceptors);
+    private InvocationHandler buildFieldInvocationHandler(Method method, Object target) {
+        return buildInvocationHandler(
+                buildInvocationInterceptors(
+                        getInvocationInterceptorFactories(), method, target
+                )
+        );
     }
 
-    private FieldInvocationHandler createFieldInvocationHandler(final MethodInvocationHandler methodInvocationHandler, final ParameterResolvers parameterResolvers) {
-
-        List<FieldInvocationInterceptor> fieldInvocationInterceptors = Lists.newArrayList();
-
-        fieldInvocationInterceptors.add(new FieldInvocationInterceptor() {
-            @Override
-            public Object invoke(FieldInvocationHandler fieldInvocationHandler, Field field, ContextParams contextParams) {
-                try {
-                    return methodInvocationHandler.invoke(parameterResolvers.resolve(contextParams).toArray());
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
+    private List<InvocationInterceptor> buildInvocationInterceptors(
+            List<InvocationInterceptorFactory> invocationInterceptorFactories,
+            Method method,
+            Object target
+    ) {
+        List<InvocationInterceptor> invocationInterceptors = Lists.newArrayList();
+        for (InvocationInterceptorFactory invocationInterceptorFactory : invocationInterceptorFactories) {
+            InvocationInterceptor invocationInterceptor = invocationInterceptorFactory.create(method, target);
+            if (invocationInterceptor != null) {
+                invocationInterceptors.add(invocationInterceptor);
             }
-        });
+        }
+        return invocationInterceptors;
+    }
 
-        fieldInvocationInterceptors.add(new PropsSupport());
+    private List<InvocationInterceptorFactory> getInvocationInterceptorFactories() {
+        List<InvocationInterceptorFactory> fieldInvocationInterceptorFactories = Lists.newArrayList();
 
-        if (config.getFieldInvocationInterceptors() != null) {
-            fieldInvocationInterceptors.addAll(config.getFieldInvocationInterceptors());
+        fieldInvocationInterceptorFactories.add(new MethodInvokerFactory());
+        fieldInvocationInterceptorFactories.add(new ReflectInterceptorFactory(PropsPicker.class));
+
+        if (config.getFieldInvocationInterceptorFactories() != null) {
+            fieldInvocationInterceptorFactories.addAll(config.getFieldInvocationInterceptorFactories());
         }
 
-        fieldInvocationInterceptors.add(new ExceptionHandler());
+        fieldInvocationInterceptorFactories.add(new CacheableFactory());
+        fieldInvocationInterceptorFactories.add(new ReflectInterceptorFactory(ExceptionHandler.class));
 
-        return createFieldInvocationHandlerFromInterceptors(fieldInvocationInterceptors);
+        return fieldInvocationInterceptorFactories;
     }
 
-    public FieldInvocationHandler buildFieldInvocationHandler(Method method, Object target) {
-        return createFieldInvocationHandler(createMethodInvocationHandler(method, target), new ParameterResolvers(method));
-    }
-
-    private FieldInvocationHandler createFieldInvocationHandlerFromInterceptors(List<FieldInvocationInterceptor> interceptors) {
-        FieldInvocationHandler last = null;
-        for (final FieldInvocationInterceptor interceptor : interceptors) {
-            final FieldInvocationHandler prev = last;
-            last = new FieldInvocationHandler() {
+    private InvocationHandler buildInvocationHandler(List<InvocationInterceptor> interceptors) {
+        InvocationHandler last = null;
+        for (final InvocationInterceptor interceptor : interceptors) {
+            final InvocationHandler prev = last;
+            last = new InvocationHandler() {
                 @Override
                 public Object invoke(Field field, ContextParams contextParams) {
                     return interceptor.invoke(prev, field, contextParams);
@@ -124,33 +107,18 @@ public class Registry {
         return last;
     }
 
-    private MethodInvocationHandler createMethodInvocationHandlerFromInterceptors(List<MethodInvocationInterceptor> interceptors) {
-        MethodInvocationHandler last = null;
-        for (final MethodInvocationInterceptor interceptor : interceptors) {
-            final MethodInvocationHandler prev = last;
-            last = new MethodInvocationHandler() {
-                @Override
-                public Object invoke(Object[] args) throws Exception {
-                    return interceptor.invoke(prev, args);
-                }
-            };
-        }
-
-        return last;
-    }
-
-    public FieldInvocationHandler getFieldInvocationHandler() {
-        return new FieldInvocationHandler() {
+    public InvocationHandler getFieldInvocationHandler() {
+        return new InvocationHandler() {
             @Override
             public Object invoke(Field field, ContextParams contextParams) {
-                String mapKey = generateKey(field.getType(), field.getCategory());
-                FieldInvocationHandler fieldInvocationHandler = fieldInvocationHandlerMap.get(mapKey);
+                String mapKey = getKey(field.getType(), field.getCategory());
+                InvocationHandler invocationHandler = fieldInvocationHandlerMap.get(mapKey);
 
-                if (fieldInvocationHandler == null) {
+                if (invocationHandler == null) {
                     throw new RuntimeException(mapKey + " has not registered");
                 }
 
-                return fieldInvocationHandler.invoke(field, contextParams);
+                return invocationHandler.invoke(field, contextParams);
             }
         };
     }
