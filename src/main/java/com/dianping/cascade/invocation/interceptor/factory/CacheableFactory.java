@@ -17,9 +17,9 @@ public class CacheableFactory implements InvocationInterceptorFactory {
 
     private static class CacheableInterceptor implements InvocationInterceptor {
         private Cache<Object, Object> resultsCache;
-        private ParameterResolvers parameterResolvers;
+        private MethodParametersResolver methodParametersResolver;
 
-        CacheableInterceptor(Cacheable cacheable, Method method) {
+        CacheableInterceptor(Cacheable cacheable, MethodParametersResolver methodParametersResolver) {
             CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
 
             if (cacheable.expireMinutes() > 0) {
@@ -28,14 +28,14 @@ public class CacheableFactory implements InvocationInterceptorFactory {
 
             resultsCache = builder.build();
 
-            this.parameterResolvers = new ParameterResolvers(method);
+            this.methodParametersResolver = methodParametersResolver;
         }
 
         @Override
         public Object invoke(final InvocationHandler invocationHandler, final Field field, final ContextParams contextParams) {
 
             try {
-                return resultsCache.get(parameterResolvers.resolve(contextParams), new Callable<Object>() {
+                return resultsCache.get(methodParametersResolver.resolve(contextParams), new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
                         return invocationHandler.invoke(field, contextParams);
@@ -48,9 +48,9 @@ public class CacheableFactory implements InvocationInterceptorFactory {
     }
 
     @Override
-    public InvocationInterceptor create(Method method, Object target) {
+    public InvocationInterceptor create(Method method, Object target, MethodParametersResolver methodParametersResolver) {
         if (method.getAnnotation(Cacheable.class) != null) {
-            return new CacheableInterceptor(method.getAnnotation(Cacheable.class), method);
+            return new CacheableInterceptor(method.getAnnotation(Cacheable.class), methodParametersResolver);
         }
 
         return null;

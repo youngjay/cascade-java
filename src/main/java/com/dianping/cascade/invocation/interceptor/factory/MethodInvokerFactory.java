@@ -1,6 +1,7 @@
 package com.dianping.cascade.invocation.interceptor.factory;
 
 import com.dianping.cascade.*;
+import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Method;
 
@@ -9,21 +10,16 @@ import java.lang.reflect.Method;
  */
 public class MethodInvokerFactory implements InvocationInterceptorFactory {
 
+    @AllArgsConstructor
     private static class MethodInvoker implements InvocationInterceptor {
         private Method method;
         private Object target;
-        private ParameterResolvers parameterResolvers;
-
-        MethodInvoker(Method method, Object target) {
-            this.method = method;
-            this.target = target;
-            parameterResolvers = new ParameterResolvers(method);
-        }
+        private MethodParametersResolver methodParametersResolver;
 
         @Override
         public Object invoke(InvocationHandler invocationHandler, Field field, ContextParams contextParams) {
             try {
-                return method.invoke(target, parameterResolvers.resolve(contextParams).toArray());
+                return method.invoke(target, methodParametersResolver.resolve(contextParams).toArray());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -31,7 +27,7 @@ public class MethodInvokerFactory implements InvocationInterceptorFactory {
     }
 
     @Override
-    public InvocationInterceptor create(Method method, Object target) {
-        return new MethodInvoker(method, target);
+    public InvocationInterceptor create(Method method, Object target, MethodParametersResolver methodParametersResolver) {
+        return new MethodInvoker(method, target, methodParametersResolver);
     }
 }

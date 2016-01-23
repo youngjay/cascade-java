@@ -5,6 +5,8 @@ import com.dianping.cascade.invocation.interceptor.PropsPicker;
 import com.dianping.cascade.invocation.interceptor.factory.CacheableFactory;
 import com.dianping.cascade.invocation.interceptor.factory.MethodInvokerFactory;
 import com.dianping.cascade.invocation.interceptor.factory.ReflectInterceptorFactory;
+import com.dianping.cascade.resolver.factory.EntityResolverFactory;
+import com.dianping.cascade.resolver.factory.ParamResolverFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Getter;
@@ -74,19 +76,32 @@ public class Registry {
     private InvocationHandler buildFieldInvocationHandler(Method method, Object target) {
         return buildInvocationHandler(
                 buildInvocationInterceptors(
-                        getInvocationInterceptorFactories(), method, target
+                        getInvocationInterceptorFactories(), method, target, getParameterResolvers(method)
                 )
         );
+    }
+
+    private MethodParametersResolver getParameterResolvers(Method method) {
+        List<ParameterResolverFactory> parameterResolverFactories = Lists.newArrayList();
+        parameterResolverFactories.add(new ParamResolverFactory());
+        parameterResolverFactories.add(new EntityResolverFactory());
+
+        if (config.getParameterResolverFactories() != null) {
+            parameterResolverFactories.addAll(config.getParameterResolverFactories());
+        }
+
+        return new MethodParametersResolver(method, parameterResolverFactories);
     }
 
     private List<InvocationInterceptor> buildInvocationInterceptors(
             List<InvocationInterceptorFactory> invocationInterceptorFactories,
             Method method,
-            Object target
+            Object target,
+            MethodParametersResolver methodParametersResolver
     ) {
         List<InvocationInterceptor> invocationInterceptors = Lists.newArrayList();
         for (InvocationInterceptorFactory invocationInterceptorFactory : invocationInterceptorFactories) {
-            InvocationInterceptor invocationInterceptor = invocationInterceptorFactory.create(method, target);
+            InvocationInterceptor invocationInterceptor = invocationInterceptorFactory.create(method, target, methodParametersResolver);
             if (invocationInterceptor != null) {
                 invocationInterceptors.add(invocationInterceptor);
             }

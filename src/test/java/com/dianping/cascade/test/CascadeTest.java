@@ -3,7 +3,7 @@ package com.dianping.cascade.test;
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.CascadeFactoryConfig;
 import com.dianping.cascade.Field;
-import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
+import com.dianping.cascade.factory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Cooperation;
 import com.dianping.cascade.test.cascade.Delay;
 import com.dianping.cascade.test.cascade.Shop;

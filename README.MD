@@ -19,7 +19,7 @@
 在spring的配置文件中加入```cascadeFactory```和```cascade```
 
 ```xml
-<bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" />
+<bean class="com.dianping.cascade.factory.SpringContextCascadeFactory" id="cascadeFactory" />
 <bean id="cascade" factory-bean="cascadeFactory" factory-method="create" />
 ```
 
@@ -137,7 +137,7 @@ public Object cascade(@RequestBody List<Field> fields) {
 对casade的配置,可以在声明SpringContextCascadeFactory的时候传入,例如:
 
 ```xml
-<bean class="com.dianping.cascade.cascadefactory.SpringContextCascadeFactory" id="cascadeFactory" >
+<bean class="com.dianping.cascade.factory.SpringContextCascadeFactory" id="cascadeFactory" >
     <constructor-arg index="0">
         <bean class="com.dianping.cascade.CascadeFactoryConfig">
             <property name="threadCount" value="100" />

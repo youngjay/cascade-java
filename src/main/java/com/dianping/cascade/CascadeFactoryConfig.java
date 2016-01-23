@@ -16,6 +16,7 @@ public class CascadeFactoryConfig {
     private int threadCount = 1;
 
     private List<InvocationInterceptorFactory> invocationInterceptorFactories;
+    private List<ParameterResolverFactory> parameterResolverFactories;
 
     public final static CascadeFactoryConfig DEFAULT = new CascadeFactoryConfig();
 }

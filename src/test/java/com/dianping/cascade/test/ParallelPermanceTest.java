@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.dianping.cascade.Cascade;
 import com.dianping.cascade.CascadeFactoryConfig;
 import com.dianping.cascade.Field;
-import com.dianping.cascade.cascadefactory.BeansCascadeFactory;
+import com.dianping.cascade.factory.BeansCascadeFactory;
 import com.dianping.cascade.test.cascade.Delay;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
