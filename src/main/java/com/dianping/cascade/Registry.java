@@ -1,10 +1,9 @@
 package com.dianping.cascade;
 
-import com.dianping.cascade.invocation.interceptor.ExceptionHandler;
-import com.dianping.cascade.invocation.interceptor.PropsPicker;
 import com.dianping.cascade.invocation.interceptor.factory.CacheableFactory;
+import com.dianping.cascade.invocation.interceptor.factory.ExceptionHandlerFactory;
 import com.dianping.cascade.invocation.interceptor.factory.MethodInvokerFactory;
-import com.dianping.cascade.invocation.interceptor.factory.ReflectInterceptorFactory;
+import com.dianping.cascade.invocation.interceptor.factory.PropsPickerFactory;
 import com.dianping.cascade.resolver.factory.EntityResolverFactory;
 import com.dianping.cascade.resolver.factory.ParamResolverFactory;
 import com.google.common.collect.Lists;
@@ -83,12 +82,13 @@ public class Registry {
 
     private MethodParametersResolver getParameterResolvers(Method method) {
         List<ParameterResolverFactory> parameterResolverFactories = Lists.newArrayList();
-        parameterResolverFactories.add(new ParamResolverFactory());
-        parameterResolverFactories.add(new EntityResolverFactory());
 
         if (config.getParameterResolverFactories() != null) {
             parameterResolverFactories.addAll(config.getParameterResolverFactories());
         }
+
+        parameterResolverFactories.add(new ParamResolverFactory());
+        parameterResolverFactories.add(new EntityResolverFactory());
 
         return new MethodParametersResolver(method, parameterResolverFactories);
     }
@@ -114,13 +114,13 @@ public class Registry {
 
         fieldInvocationInterceptorFactories.add(new MethodInvokerFactory());
         fieldInvocationInterceptorFactories.add(new CacheableFactory());
-        fieldInvocationInterceptorFactories.add(new ReflectInterceptorFactory(PropsPicker.class));
+        fieldInvocationInterceptorFactories.add(new PropsPickerFactory());
 
         if (config.getInvocationInterceptorFactories() != null) {
             fieldInvocationInterceptorFactories.addAll(config.getInvocationInterceptorFactories());
         }
 
-        fieldInvocationInterceptorFactories.add(new ReflectInterceptorFactory(ExceptionHandler.class));
+        fieldInvocationInterceptorFactories.add(new ExceptionHandlerFactory());
 
         return fieldInvocationInterceptorFactories;
     }

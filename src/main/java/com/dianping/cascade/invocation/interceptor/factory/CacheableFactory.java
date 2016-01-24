@@ -14,43 +14,35 @@ import java.util.concurrent.TimeUnit;
  * Created by yangjie on 1/23/16.
  */
 public class CacheableFactory implements InvocationInterceptorFactory {
+    @Override
+    public InvocationInterceptor create(Method method, Object target, final MethodParametersResolver methodParametersResolver) {
+        if (method.getAnnotation(Cacheable.class) != null) {
+            Cacheable cacheable = method.getAnnotation(Cacheable.class);
 
-    private static class CacheableInterceptor implements InvocationInterceptor {
-        private Cache<Object, Object> resultsCache;
-        private MethodParametersResolver methodParametersResolver;
-
-        CacheableInterceptor(Cacheable cacheable, MethodParametersResolver methodParametersResolver) {
             CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
 
             if (cacheable.expireMinutes() > 0) {
                 builder.expireAfterWrite(cacheable.expireMinutes(), TimeUnit.MINUTES);
             }
 
-            resultsCache = builder.build();
+            final Cache<Object, Object> resultsCache = builder.build();
 
-            this.methodParametersResolver = methodParametersResolver;
-        }
-
-        @Override
-        public Object invoke(final InvocationHandler invocationHandler, final Field field, final ContextParams contextParams) {
-
-            try {
-                return resultsCache.get(methodParametersResolver.resolve(contextParams), new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return invocationHandler.invoke(field, contextParams);
+            return new InvocationInterceptor() {
+                @Override
+                public Object invoke(final InvocationHandler invocationHandler, final Field field, final ContextParams contextParams) {
+                    try {
+                        return resultsCache.get(methodParametersResolver.resolve(contextParams), new Callable<Object>() {
+                            @Override
+                            public Object call() throws Exception {
+                                return invocationHandler.invoke(field, contextParams);
+                            }
+                        });
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
                     }
-                });
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+                }
+            };
 
-    @Override
-    public InvocationInterceptor create(Method method, Object target, MethodParametersResolver methodParametersResolver) {
-        if (method.getAnnotation(Cacheable.class) != null) {
-            return new CacheableInterceptor(method.getAnnotation(Cacheable.class), methodParametersResolver);
         }
 
         return null;

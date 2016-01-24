@@ -27,7 +27,7 @@ public class MethodParametersResolver {
             ParameterResolver parameterResolver = getParameterResolver(annotations, type, parameterResolverFactories);
 
             if (parameterResolver == null) {
-                throw new IllegalArgumentException(methodName + ": every argument must have @Param or @Entity annotation");
+                throw new IllegalArgumentException(String.format("%s: can not resolve the [%s] parameter", methodName, parameterIndex + 1));
             }
 
             parameterResolvers.add(parameterResolver);
