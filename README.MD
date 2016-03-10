@@ -8,7 +8,7 @@
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
-    <version>${cascade.version}</version>
+    <version>5.0.0</version>
 </dependency>
 ```
 
