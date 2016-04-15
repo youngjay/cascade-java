@@ -102,6 +102,17 @@ public class CascadeTest {
     }
 
     @Test
+    public void testNotRegisterException ()  throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Field field = new Field();
+        field.setType("NotExist");
+
+
+        Map ret = c.process(Lists.newArrayList(field), null);
+
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "notExist"), "[Cascade Error] [NotExist.query] has not registered");
+    }
+
+    @Test
     public void testSize0List()  throws  Exception{
         Field field = new Field();
         field.setType("User");

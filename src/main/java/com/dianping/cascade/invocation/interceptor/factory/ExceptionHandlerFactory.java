@@ -8,6 +8,9 @@ import java.lang.reflect.Method;
  * Created by yangjie on 1/3/16.
  */
 public class ExceptionHandlerFactory implements InvocationInterceptorFactory {
+    public static String CASCADE_ERROR = "[Cascade Error] ";
+
+
     @Override
     public InvocationInterceptor create(Method method, Object target, MethodParametersResolver methodParametersResolver) {
         return new InvocationInterceptor() {
@@ -19,7 +22,7 @@ public class ExceptionHandlerFactory implements InvocationInterceptorFactory {
                     Throwable cause = getCause(ex);
 
                     if (cause instanceof BusinessException) {
-                        return String.format("[Cascade Error] %s", cause.getMessage());
+                        return String.format(CASCADE_ERROR + cause.getMessage());
                     }
 
                     String msg = cause.getMessage();
@@ -28,7 +31,7 @@ public class ExceptionHandlerFactory implements InvocationInterceptorFactory {
                         msg = cause.getClass().getSimpleName();
                     }
 
-                    return String.format("[Cascade Error] [%s.%s] %s", field.getType(), field.getCategory(), msg);
+                    return String.format(CASCADE_ERROR + "[%s.%s] %s", field.getType(), field.getCategory(), msg);
                 }
             }
 

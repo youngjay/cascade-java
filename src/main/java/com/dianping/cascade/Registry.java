@@ -36,7 +36,7 @@ public class Registry {
                 InvocationHandler invocationHandler = invocationHandlerMap.get(mapKey);
 
                 if (invocationHandler == null) {
-                    throw new RuntimeException(mapKey + " has not registered");
+                    return ExceptionHandlerFactory.CASCADE_ERROR + "[" + mapKey + "] has not registered";
                 }
 
                 return invocationHandler.invoke(field, contextParams);
