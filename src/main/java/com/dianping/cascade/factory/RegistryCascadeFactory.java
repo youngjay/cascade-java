@@ -23,7 +23,7 @@ public class RegistryCascadeFactory implements CascadeFactory {
     }
 
     private Reducer createReducer(InvocationHandler invocationHandler, int threadCount) {
-        if (threadCount> 1) {
+        if (threadCount > 1) {
             BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(threadCount);
 
             return new ParallelReducer(invocationHandler, new ThreadPoolExecutor(
