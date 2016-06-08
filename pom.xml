@@ -17,27 +17,28 @@
     </parent>
 
     <properties>
-        <spring.version>3.2.3.RELEASE</spring.version>
+        <spring.version>4.2.6.RELEASE</spring.version>
     </properties>
 
     <dependencies>
-        <!-- maybe not deps -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
-        <!-- end maybe not deps -->
 
         <dependency>
             <groupId>commons-logging</groupId>
