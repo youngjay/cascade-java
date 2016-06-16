@@ -8,9 +8,11 @@
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>cascade</artifactId>
-    <version>5.0.0</version>
+    <version>${version}</version>
 </dependency>
 ```
+
+version请查看 [http://mvn.dianpingoa.com/webapp/#/artifacts/browse//search/quick/eyJzZWFyY2giOiJxdWljayIsInF1ZXJ5IjoiY2FzY2FkZSJ9]
 
 ## 注册cascade
 
@@ -140,10 +142,10 @@ public Object cascade(@RequestBody List<Field> fields) {
 <bean class="com.dianping.cascade.factory.SpringContextCascadeFactory" id="cascadeFactory" >
     <constructor-arg index="0">
         <bean class="com.dianping.cascade.CascadeFactoryConfig">
-            <property name="threadCount" value="100" />
-            <property name="fieldInvocationInterceptors">
+            <property name="threadCount" value="60" />
+            <property name="invocationInterceptorFactories">
                 <list>
-                    <bean class="com.dianping.cascade.CatInterceptor" />
+                    <bean class="com.dianping.cascade.CatInterceptorFactory" />
                 </list>
             </property>
         </bean>
