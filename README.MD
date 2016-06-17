@@ -188,7 +188,6 @@ public Object cascade(@RequestBody List<Field> fields) {
 
 - @Param(key)
 
-    支持泛型
     从上下文获取某个key的值
 
     上下文的参数包括
@@ -203,7 +202,6 @@ public Object cascade(@RequestBody List<Field> fields) {
 
 - @Entity
 
-    支持泛型
     用上下文的参数构造一个bean    
         
     ```java
