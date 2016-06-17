@@ -179,19 +179,7 @@ public class ParallelReducer implements Reducer {
 
     // 顺便帮忙处理一些任务
     private Map waitForComplete(List<Field> fields, RootCompleteNotifier root) {
-        // 最多重入多少次
-        int maxEnterCount = 50;
-
         while (root.remainCount.get() != 0) {
-            /* for debug */
-            if (maxEnterCount > 0) {
-                --maxEnterCount;
-                if (maxEnterCount == 0) {
-                    log.error("max run count arrived: " + fields);
-                }
-            }
-            /* end for debug */
-
             Runnable runnable = null;
 
             try {
