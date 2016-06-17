@@ -4,11 +4,12 @@ import com.dianping.cascade.ContextParams;
 import com.dianping.cascade.ParameterResolver;
 import com.dianping.cascade.ParameterResolverFactory;
 import com.dianping.cascade.annotation.Param;
-import com.google.common.collect.Lists;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
+import java.lang.reflect.Type;
 
 /**
  * Created by yangjie on 1/24/16.
@@ -16,24 +17,27 @@ import java.util.List;
 public class ParamResolverFactory implements ParameterResolverFactory {
     private static final ObjectMapper m = new ObjectMapper();
 
-    private static final String SPLITTER = ",";
-    private static final List<? extends Class> NOT_ALLOW_NULL_CLASSES = Lists.newArrayList(int.class, boolean.class, double.class, float.class, long.class);
-
-    private static boolean isAllowNullFor(Class type) {
-        return !NOT_ALLOW_NULL_CLASSES.contains(type);
+    {
+        m.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    private static final String SPLITTER = ",";
+
     @Override
-    public ParameterResolver create(Annotation[] annotations, final Class type) {
+    public ParameterResolver create(Annotation[] annotations, Type type) {
         for (Annotation annotation : annotations) {
             if (annotation instanceof Param) {
                 Param param = (Param) annotation;
                 final String[] paramKeys = param.value().split(SPLITTER);
-                final boolean allowNull = isAllowNullFor(type);
+                final JavaType javaType = m.constructType(type);
 
                 return new ParameterResolver() {
                     @Override
                     public Object resolve(ContextParams params) {
+                        return convert(findByKeys(params));
+                    }
+
+                    private Object findByKeys(ContextParams params) {
                         Object value = null;
                         for (String paramKey : paramKeys) {
                             value = params.get(paramKey);
@@ -41,26 +45,18 @@ public class ParamResolverFactory implements ParameterResolverFactory {
                                 break;
                             }
                         }
-                        return convert(value);
+                        return value;
                     }
 
                     private Object convert(Object o) {
                         if (o == null) {
-                            if (allowNull) {
-                                return null;
-                            } else {
-                                throw new IllegalArgumentException(getLocation() + "not allow null");
-                            }
-                        }
-
-                        if (o.getClass().equals(type)) {
-                            return o;
+                            return null;
                         }
 
                         try {
-                            return m.convertValue(o, type);
+                            return m.convertValue(o, javaType);
                         } catch (Exception ex) {
-                            throw new RuntimeException(getLocation() + String.format("param type not match: expect [%s], actual [%s]", type.getSimpleName(), o.getClass().getSimpleName()));
+                            throw new RuntimeException(getLocation() + String.format("param type not match: expect [%s], actual [%s]", javaType.toCanonical(), o.getClass().getSimpleName()));
                         }
                     }
 

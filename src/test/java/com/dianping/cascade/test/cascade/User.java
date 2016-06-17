@@ -8,6 +8,7 @@ import com.dianping.cascade.test.model.UserDTO;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by yangjie on 9/22/15.
@@ -55,5 +56,16 @@ public class User {
 
     public List size0() {
         return Lists.newArrayList();
+    }
+
+
+    public Object generic(@Param("users") Map<Integer, List<UserDTO>> users) {
+        List<UserDTO> all = Lists.newArrayList();
+
+        for (List<UserDTO> one: users.values()) {
+            all.addAll(one);
+        }
+
+        return all;
     }
 }

@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -19,10 +20,10 @@ public class MethodParametersResolver {
         methodName = method.getName();
         int parameterIndex = 0;
 
-        Class<?>[] types = method.getParameterTypes();
+        Type[] types = method.getGenericParameterTypes();
 
         for (Annotation[] annotations : method.getParameterAnnotations()) {
-            Class type = types[parameterIndex];
+            Type type = types[parameterIndex];
 
             ParameterResolver parameterResolver = getParameterResolver(annotations, type, parameterResolverFactories);
 
@@ -36,7 +37,7 @@ public class MethodParametersResolver {
         }
     }
 
-    private ParameterResolver getParameterResolver(Annotation[] annotations, Class type, List<ParameterResolverFactory> parameterResolverFactories) {
+    private ParameterResolver getParameterResolver(Annotation[] annotations, Type type, List<ParameterResolverFactory> parameterResolverFactories) {
         for (ParameterResolverFactory parameterResolverFactory : parameterResolverFactories) {
             ParameterResolver parameterResolver = parameterResolverFactory.create(annotations, type);
             if (parameterResolver != null) {
