@@ -2,14 +2,16 @@
 
 支持并行和子查询的前后端的http通讯框架
 
-您只需在代码中声明cascadeaware,即可享用cascade所有功能
+您只需在代码中声明实现CascadeAwaree,即可享用cascade所有功能
 
 ```java
 @Component
+// CascadeAware 是一个空接口
 public class Performance implements CascadeAware {
     @Autowired
     private ShopInfoService shopInfoService;
-
+    
+    // 前端可以通过cascade({type:"Performance",params:{shopId:123}}) 调用这个方法
     public PerformanceModel query(@Param("shopId") int shopId, @Param("operator") UserContext operator) {
         return shopInfoService.getPerformanceModelByShopId(shopId, operator.getLoginId());
     }
