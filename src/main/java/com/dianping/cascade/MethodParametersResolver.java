@@ -7,16 +7,17 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by yangjie on 12/27/15.
  */
 public class MethodParametersResolver {
 
-    private List<ParameterResolver> parameterResolvers = Lists.newArrayList();
+    private List<ContextParamResolver> parameterResolvers = Lists.newArrayList();
     private String methodName;
 
-    public MethodParametersResolver(Method method, List<ParameterResolverFactory> parameterResolverFactories) {
+    public MethodParametersResolver(Method method, Map<Class<? extends Annotation>, ParameterResolverFactory> resolverFactoryMap) {
         methodName = method.getName();
         int parameterIndex = 0;
 
@@ -25,23 +26,22 @@ public class MethodParametersResolver {
         for (Annotation[] annotations : method.getParameterAnnotations()) {
             Type type = types[parameterIndex];
 
-            ParameterResolver parameterResolver = getParameterResolver(annotations, type, parameterResolverFactories);
+            ContextParamResolver contextParamResolver = getParameterResolver(annotations, type, resolverFactoryMap);
 
-            if (parameterResolver == null) {
+            if (contextParamResolver == null) {
                 throw new IllegalArgumentException(String.format("%s: can not resolve the [%s] parameter", methodName, parameterIndex + 1));
             }
 
-            parameterResolvers.add(parameterResolver);
+            parameterResolvers.add(contextParamResolver);
 
             parameterIndex += 1;
         }
     }
 
-    private ParameterResolver getParameterResolver(Annotation[] annotations, Type type, List<ParameterResolverFactory> parameterResolverFactories) {
-        for (ParameterResolverFactory parameterResolverFactory : parameterResolverFactories) {
-            ParameterResolver parameterResolver = parameterResolverFactory.create(annotations, type);
-            if (parameterResolver != null) {
-                return parameterResolver;
+    private ContextParamResolver getParameterResolver(Annotation[] annotations, Type type, Map<Class<? extends Annotation>, ParameterResolverFactory> resolverFactoryMap) {
+        for (Annotation annotation : annotations) {
+            if (resolverFactoryMap.containsKey(annotation.annotationType())) {
+                return resolverFactoryMap.get(annotation.annotationType()).create(annotation, new ParamConverter(type));
             }
         }
         return null;
@@ -49,9 +49,9 @@ public class MethodParametersResolver {
 
     public List<Object> resolve(final ContextParams params) {
         try {
-            return Lists.transform(parameterResolvers, new Function<ParameterResolver, Object>() {
+            return Lists.transform(parameterResolvers, new Function<ContextParamResolver, Object>() {
                 @Override
-                public Object apply(ParameterResolver input) {
+                public Object apply(ContextParamResolver input) {
                     return input.resolve(params);
                 }
             });

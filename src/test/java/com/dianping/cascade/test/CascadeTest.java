@@ -199,7 +199,7 @@ public class CascadeTest {
         }});
         Map ret = c.process(Lists.newArrayList(field), null);
 
-        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] @Param(\"userId\") param type not match: expect [int], actual [ArrayList]");
+        Assert.assertEquals(PropertyUtils.getProperty(ret, "user_load"), "[Cascade Error] [User.load] param type not match: expect [int], actual [java.util.ArrayList]");
     }
 
     @Test

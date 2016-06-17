@@ -1,5 +1,7 @@
 package com.dianping.cascade;
 
+import com.dianping.cascade.annotation.Entity;
+import com.dianping.cascade.annotation.Param;
 import com.dianping.cascade.invocation.interceptor.factory.CacheableFactory;
 import com.dianping.cascade.invocation.interceptor.factory.ExceptionHandlerFactory;
 import com.dianping.cascade.invocation.interceptor.factory.MethodInvokerFactory;
@@ -10,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -81,16 +84,12 @@ public class Registry {
     }
 
     private MethodParametersResolver getParameterResolvers(Method method) {
-        List<ParameterResolverFactory> parameterResolverFactories = Lists.newArrayList();
+        Map<Class<? extends Annotation>, ParameterResolverFactory> resolverFactoryMap = Maps.newHashMap();
 
-        if (config.getParameterResolverFactories() != null) {
-            parameterResolverFactories.addAll(config.getParameterResolverFactories());
-        }
+        resolverFactoryMap.put(Entity.class, new EntityResolverFactory());
+        resolverFactoryMap.put(Param.class, new ParamResolverFactory());
 
-        parameterResolverFactories.add(new ParamResolverFactory());
-        parameterResolverFactories.add(new EntityResolverFactory());
-
-        return new MethodParametersResolver(method, parameterResolverFactories);
+        return new MethodParametersResolver(method, resolverFactoryMap);
     }
 
     private List<InvocationInterceptor> buildInvocationInterceptors(
