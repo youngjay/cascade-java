@@ -307,7 +307,7 @@ public class CascadeTest {
 
     @Test
     public void testGeneric() throws Exception {
-        Field field = JSON.parseObject("{\"type\":\"User\",\"category\":\"generic\",\"params\":{\"users\":{\"1\":[{\"id\":1,\"name\":\"bb\"}],\"2\":[{\"id\":2,\"name\":\"cc\"},{\"id\":3,\"name\":\"dd\"}]}}}", Field.class);
+        Field field = JSON.parseObject("{\"type\":\"User\",\"category\":\"generic\",\"params\":{\"users\":{\"1\":[{\"id\":1,\"name1\":\"bb\"}],\"2\":[{\"id\":2,\"name\":\"cc\"},{\"id\":3,\"name\":\"dd\"}]}}}", Field.class);
         Map ret = c.process(Lists.newArrayList(field), null);
         Assert.assertEquals(((List)PropertyUtils.getProperty(ret, "user_generic")).size(), 3);
     }
