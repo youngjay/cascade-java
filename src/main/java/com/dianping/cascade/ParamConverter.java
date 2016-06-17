@@ -23,10 +23,6 @@ public class ParamConverter {
     }
 
     public Object convert(Object input) {
-        if (input == null) {
-            return null;
-        }
-
         try {
             return m.convertValue(input, javaType);
         } catch (Exception ex) {
