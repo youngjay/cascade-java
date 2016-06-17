@@ -2,7 +2,7 @@
 
 支持并行和子查询的前后端的http通讯框架
 
-您只需在代码中声明实现CascadeAwaree,即可享用cascade所有功能
+您只需在代码中声明实现CascadeAware,即可享用cascade所有功能
 
 ```java
 @Component
