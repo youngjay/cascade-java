@@ -2,6 +2,22 @@
 
 支持并行和子查询的前后端的http通讯框架
 
+您只需在代码中声明cascadeaware,即可享用cascade所有功能
+
+```java
+@Component
+public class Performance implements CascadeAware {
+    @Autowired
+    private ShopInfoService shopInfoService;
+
+    public PerformanceModel query(@Param("shopId") int shopId, @Param("operator") UserContext operator) {
+        return shopInfoService.getPerformanceModelByShopId(shopId, operator.getLoginId());
+    }
+
+}
+```
+
+
 ## MAVEN
 
 ```xml
@@ -169,6 +185,8 @@ public Object cascade(@RequestBody List<Field> fields) {
 在导入的cascade类中,我们可以通过注释来获取ContextParams中的参数
 
 - @Param(key)
+
+    支持泛型
     从上下文获取某个key的值
 
     上下文的参数包括
@@ -183,6 +201,7 @@ public Object cascade(@RequestBody List<Field> fields) {
 
 - @Entity
 
+    支持泛型
     用上下文的参数构造一个bean    
         
     ```java
